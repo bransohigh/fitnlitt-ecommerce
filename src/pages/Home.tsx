@@ -28,126 +28,98 @@ export const Home: React.FC = () => {
 
   return (
     <div className="w-full">
-      {/* Hero Section - 2 Varyasyon */}
-      {heroVariant === 'editorial' ? (
-        <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
-          {/* Background Image with Gradient Overlay */}
-          <div className="absolute inset-0 z-0">
-            <img
-              src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920"
-              alt="Hero"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-transparent" />
-          </div>
-
-          {/* Hero Content */}
-          <div className="relative z-10 container-custom text-center text-white max-w-4xl">
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="eyebrow-text mb-4 text-[var(--primary-coral)]"
-            >
-              2025 Koleksiyonu
-            </motion.p>
-            
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-6 text-4xl md:text-6xl lg:text-7xl"
-            >
-              Sen Hareket Ettikçe<br />Güçleniyorsun
-            </motion.h1>
-            
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="text-lg md:text-xl max-w-2xl mx-auto mb-10 text-gray-100"
-            >
-              İçindeki potansiyeli ortaya çıkar. Kendini özgürce ifade et.
-            </motion.p>
-            
+      {/* Hero Section - 2 Column Layout */}
+      <section className="relative min-h-[85vh] bg-[var(--brand-cream)] overflow-hidden">
+        <div className="container-custom h-full min-h-[85vh] flex items-center">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center w-full py-12">
+            {/* Left Column - Banner + CTAs */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="flex flex-wrap items-center justify-center gap-4"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="space-y-8"
             >
-              <Button
-                size="lg"
-                className="bg-[var(--primary-coral)] hover:bg-[var(--primary-peach)] text-[var(--brand-black)] text-lg px-10 h-14"
+              <div>
+                <p className="eyebrow-text mb-4 text-[var(--primary-coral)]">
+                  2025 Koleksiyonu
+                </p>
+                
+                <h1 className="mb-6 text-4xl md:text-5xl lg:text-6xl text-[var(--brand-black)]">
+                  Sen Hareket Ettikçe<br />Güçleniyorsun
+                </h1>
+                
+                <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-md">
+                  İçindeki potansiyeli ortaya çıkar. Kendini özgürce ifade et.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button
+                  size="lg"
+                  className="bg-[var(--primary-coral)] hover:bg-[var(--primary-peach)] text-[var(--brand-black)] text-lg px-10 h-14 w-full sm:w-auto"
+                >
+                  Koleksiyonu Keşfet
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-2 border-[var(--brand-black)] text-[var(--brand-black)] hover:bg-[var(--brand-black)] hover:text-white text-lg px-10 h-14 w-full sm:w-auto"
+                >
+                  Hikayemiz
+                </Button>
+              </div>
+            </motion.div>
+
+            {/* Right Column - Product Carousel */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="relative"
+            >
+              <Carousel
+                opts={{
+                  align: 'start',
+                  loop: true,
+                }}
+                className="w-full"
               >
-                Koleksiyonu Keşfet
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-2 border-white text-white hover:bg-white hover:text-[var(--brand-black)] text-lg px-10 h-14"
-              >
-                Hikayemiz
-              </Button>
+                <CarouselContent className="-ml-4">
+                  {bestsellerProducts.slice(0, 4).map((product) => (
+                    <CarouselItem key={product.id} className="pl-4 basis-4/5 sm:basis-3/5 lg:basis-full">
+                      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden group">
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                          <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
+                          <p className="text-2xl font-bold">{product.price} TL</p>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden lg:flex -left-4" />
+                <CarouselNext className="hidden lg:flex -right-4" />
+              </Carousel>
             </motion.div>
           </div>
+        </div>
 
-          {/* Scroll Indicator */}
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
-          >
-            <ChevronDown className="w-8 h-8 text-white" />
-          </motion.div>
-        </section>
-      ) : (
-        <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 z-0">
-            <img
-              src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1920"
-              alt="Baddie Collection"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-transparent" />
-          </div>
+        {/* Scroll Indicator */}
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
+        >
+          <ChevronDown className="w-8 h-8 text-[var(--brand-black)]" />
+        </motion.div>
+      </section>
 
-          <div className="relative z-10 container-custom text-center text-white max-w-4xl">
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="eyebrow-text mb-4 text-[var(--primary-coral)]"
-            >
-              Baddie Collection
-            </motion.p>
-            
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-6 text-5xl md:text-7xl"
-            >
-              Cesur, Güçlü, Özgürlükçü
-            </motion.h1>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Button
-                size="lg"
-                className="bg-[var(--primary-coral)] hover:bg-[var(--primary-peach)] text-[var(--brand-black)] text-lg px-12 h-14"
-              >
-                Şimdi Alışveriş Yap
-              </Button>
-            </motion.div>
-          </div>
-        </section>
-      )}
-
-      {/* Shop by Collection */}
+      {/* Shop by Collection - Slider */}
       <section className="py-16 md:py-24 bg-white">
         <div className="container-custom">
           <div className="text-center mb-12">
@@ -179,17 +151,23 @@ export const Home: React.FC = () => {
             </motion.p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {mainCollections.slice(0, 3).map((collection, index) => (
-              <CollectionCard key={collection.id} {...collection} index={index} />
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8 mt-6 lg:mt-8 max-w-4xl mx-auto">
-            {mainCollections.slice(3, 5).map((collection, index) => (
-              <CollectionCard key={collection.id} {...collection} index={index + 3} />
-            ))}
-          </div>
+          <Carousel
+            opts={{
+              align: 'start',
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-4">
+              {mainCollections.map((collection, index) => (
+                <CarouselItem key={collection.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                  <CollectionCard {...collection} index={index} />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden md:flex" />
+            <CarouselNext className="hidden md:flex" />
+          </Carousel>
         </div>
       </section>
 
@@ -246,6 +224,26 @@ export const Home: React.FC = () => {
             imagePosition="left"
             ctaText="She Moves Koleksiyonu"
             ctaLink="/collection/she-moves"
+            hotspots={[
+              {
+                id: 'crop-top',
+                x: 50,
+                y: 35,
+                productName: products[2].name,
+                productPrice: products[2].price,
+                productImage: products[2].images[0],
+                productLink: '#product'
+              },
+              {
+                id: 'leggings',
+                x: 50,
+                y: 65,
+                productName: products[1].name,
+                productPrice: products[1].price,
+                productImage: products[1].images[0],
+                productLink: '#product'
+              }
+            ]}
           />
         </div>
       </section>
@@ -260,6 +258,17 @@ export const Home: React.FC = () => {
             imagePosition="right"
             ctaText="2nd SKN Koleksiyonu"
             ctaLink="/collection/2nd-skn"
+            hotspots={[
+              {
+                id: 'sports-bra',
+                x: 50,
+                y: 40,
+                productName: products[3].name,
+                productPrice: products[3].price,
+                productImage: products[3].images[0],
+                productLink: '#product'
+              }
+            ]}
           />
         </div>
       </section>

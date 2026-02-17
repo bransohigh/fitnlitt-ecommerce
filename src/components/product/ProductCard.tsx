@@ -14,7 +14,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const { addToCart } = useCart();
 
-  const currentImage = isHovered && product.images[1] ? product.images[1] : product.images[0];
+  // Show selected color's image, or fallback to hover/default image
+  const currentImage = selectedColor.image || (isHovered && product.images[1] ? product.images[1] : product.images[0]);
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
   const discountPercent = hasDiscount
     ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)

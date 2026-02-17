@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, ShoppingCart, User, Menu, X } from 'lucide-react';
 import { collections } from '@/data/products';
 import { useCart } from '@/context/CartContext';
@@ -7,6 +7,29 @@ export const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const { totalItems } = useCart();
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = (itemId: string) => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setActiveDropdown(itemId);
+  };
+
+  const handleMouseLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 200); // 200ms delay before closing
+  };
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const navigationItems = [
     {
@@ -54,8 +77,8 @@ export const Header: React.FC = () => {
                 <div
                   key={item.id}
                   className="relative"
-                  onMouseEnter={() => item.items && setActiveDropdown(item.id)}
-                  onMouseLeave={() => setActiveDropdown(null)}
+                  onMouseEnter={() => item.items && handleMouseEnter(item.id)}
+                  onMouseLeave={() => item.items && handleMouseLeave()}
                 >
                   {item.href ? (
                     <a
@@ -74,27 +97,33 @@ export const Header: React.FC = () => {
 
                   {/* Dropdown Menu */}
                   {item.items && activeDropdown === item.id && (
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[600px] glass-effect rounded-xl border border-black/5 shadow-xl p-6">
-                      <div className="grid grid-cols-3 gap-4">
+                    <div 
+                      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[700px] glass-effect rounded-xl border border-black/5 shadow-xl p-6"
+                      onMouseEnter={() => handleMouseEnter(item.id)}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <div className="grid grid-cols-2 gap-6">
                         {item.items.map((subItem) => (
                           <a
                             key={subItem.id}
                             href="#collection"
-                            className="group block"
+                            className="group flex items-center gap-4 p-3 rounded-lg hover:bg-black/5 transition-colors"
                           >
-                            <div className="aspect-[3/4] overflow-hidden rounded-lg mb-2">
+                            <div className="w-20 h-20 flex-shrink-0 overflow-hidden rounded-lg">
                               <img
                                 src={subItem.image}
                                 alt={subItem.name}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                               />
                             </div>
-                            <h4 className="text-sm font-medium text-[var(--brand-black)] group-hover:text-[var(--primary-coral)]">
-                              {subItem.name}
-                            </h4>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {subItem.description}
-                            </p>
+                            <div className="flex-1">
+                              <h4 className="text-sm font-medium text-[var(--brand-black)] group-hover:text-[var(--primary-coral)] transition-colors">
+                                {subItem.name}
+                              </h4>
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                {subItem.description}
+                              </p>
+                            </div>
                           </a>
                         ))}
                       </div>
