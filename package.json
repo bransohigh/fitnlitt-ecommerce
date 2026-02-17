@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "postinstall": "chmod -R +x node_modules/.bin || true",
+    "postinstall": "pnpm rebuild esbuild && chmod -R +x node_modules/.pnpm/@esbuild/*/node_modules/@esbuild/*/bin/* || true",
     "dev": "vite",
     "install-and-dev": "pnpm install && pnpm dev",
     "build": "vite build --mode development",
