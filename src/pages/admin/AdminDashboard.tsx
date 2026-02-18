@@ -58,28 +58,28 @@ export function AdminDashboard() {
       value: stats.totalProducts,
       icon: Package,
       color: 'blue',
-      href: '#admin/products',
+      href: '/admin/products',
     },
     {
       title: 'Collections',
       value: stats.totalCollections,
       icon: FolderKanban,
       color: 'purple',
-      href: '#admin/collections',
+      href: '/admin/collections',
     },
     {
       title: 'Orders',
       value: stats.totalOrders,
       icon: TrendingUp,
       color: 'green',
-      href: '#admin/orders',
+      href: null,
     },
     {
       title: 'Customers',
       value: stats.totalCustomers,
       icon: Users,
       color: 'orange',
-      href: '#admin/customers',
+      href: '/admin/customers',
     },
   ];
 
@@ -116,13 +116,15 @@ export function AdminDashboard() {
                     <Icon className="w-6 h-6" />
                   </div>
                 </div>
-                <a
-                  href={stat.href}
-                  className="mt-4 flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
-                >
-                  View all
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </a>
+                {stat.href && (
+                  <button
+                    onClick={() => navigate(stat.href!)}
+                    className="mt-4 flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                  >
+                    View all
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </button>
+                )}
               </CardContent>
             </Card>
           );
@@ -137,11 +139,11 @@ export function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <Button onClick={() => navigate('/admin/products/new')}>
+            <Button onClick={() => alert('Ürün ekleme yakında aktif olacak.')}>
               <Plus className="w-4 h-4 mr-2" />
               Add Product
             </Button>
-            <Button variant="outline" onClick={() => navigate('/admin/collections/new')}>
+            <Button variant="outline" onClick={() => alert('Koleksiyon ekleme yakında aktif olacak.')}>
               <Plus className="w-4 h-4 mr-2" />
               Add Collection
             </Button>

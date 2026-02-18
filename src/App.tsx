@@ -18,6 +18,8 @@ import { AdminLogin } from '@/pages/admin/AdminLogin';
 import { AdminDashboard } from '@/pages/admin/AdminDashboard';
 import { AdminProducts } from '@/pages/admin/AdminProducts';
 import { AdminCollections } from '@/pages/admin/AdminCollections';
+import { AdminCustomers } from '@/pages/admin/AdminCustomers';
+import { AdminSettings } from '@/pages/admin/AdminSettings';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -90,6 +92,22 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <AdminLayout><AdminCollections /></AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/customers"
+          element={
+            <ProtectedRoute>
+              <AdminLayout><AdminCustomers /></AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute>
+              <AdminLayout><AdminSettings /></AdminLayout>
             </ProtectedRoute>
           }
         />

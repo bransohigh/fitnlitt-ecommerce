@@ -42,7 +42,7 @@ export function AdminCollections() {
       setLoading(true);
       const { data, error } = await supabaseAuth
         .from('collections')
-        .select('id, slug, title, description, is_active, updated_at')
+        .select('id, slug, title, description, created_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -64,8 +64,8 @@ export function AdminCollections() {
         title: c.title,
         description: c.description,
         product_count: countMap[c.id] || 0,
-        is_active: c.is_active ?? true,
-        updated_at: c.updated_at || new Date().toISOString(),
+        is_active: true,
+        updated_at: c.created_at || new Date().toISOString(),
       }));
 
       setCollections(transformedCollections);
@@ -98,7 +98,7 @@ export function AdminCollections() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Collections</h1>
           <p className="text-gray-600">Organize your products into collections</p>
         </div>
-        <Button onClick={() => navigate('/admin/collections/new')} size="lg">
+        <Button onClick={() => alert('Koleksiyon ekleme yakında aktif olacak.')} size="lg">
           <Plus className="w-4 h-4 mr-2" />
           Add Collection
         </Button>
@@ -166,7 +166,7 @@ export function AdminCollections() {
                       <p className="text-gray-900 font-medium mb-1">No collections yet</p>
                       <p className="text-sm text-gray-500">Get started by creating your first collection</p>
                     </div>
-                    <Button onClick={() => navigate('/admin/collections/new')}>
+                    <Button onClick={() => alert('Koleksiyon ekleme yakında aktif olacak.')}>
                       <Plus className="w-4 h-4 mr-2" />
                       Add Collection
                     </Button>

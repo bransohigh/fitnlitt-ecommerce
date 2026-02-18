@@ -45,8 +45,8 @@ export function AdminProducts() {
       const { data, error } = await supabaseAuth
         .from('products')
         .select(`
-          id, slug, title, price, compare_at_price,
-          is_active, is_featured, updated_at,
+          id, slug, title, price, compare_at,
+          is_active, is_featured, created_at,
           collections(title)
         `)
         .order('created_at', { ascending: false })
@@ -59,11 +59,11 @@ export function AdminProducts() {
         slug: p.slug,
         title: p.title,
         price: parseFloat(p.price),
-        compare_at: p.compare_at_price ? parseFloat(p.compare_at_price) : null,
+        compare_at: p.compare_at ? parseFloat(p.compare_at) : null,
         is_active: p.is_active ?? true,
         is_featured: p.is_featured ?? false,
         collection_name: p.collections?.title ?? null,
-        updated_at: p.updated_at ?? new Date().toISOString(),
+        updated_at: p.created_at ?? new Date().toISOString(),
       }));
 
       setProducts(transformedProducts);
@@ -96,7 +96,7 @@ export function AdminProducts() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Products</h1>
           <p className="text-gray-600">Manage your product catalog</p>
         </div>
-        <Button onClick={() => navigate('/admin/products/new')} size="lg">
+        <Button onClick={() => alert('Ürün ekleme yakında aktif olacak.')} size="lg">
           <Plus className="w-4 h-4 mr-2" />
           Add Product
         </Button>
@@ -166,7 +166,7 @@ export function AdminProducts() {
                       <p className="text-gray-900 font-medium mb-1">No products yet</p>
                       <p className="text-sm text-gray-500">Get started by creating your first product</p>
                     </div>
-                    <Button onClick={() => navigate('/admin/products/new')}>
+                    <Button onClick={() => alert('Ürün ekleme yakında aktif olacak.')}>
                       <Plus className="w-4 h-4 mr-2" />
                       Add Product
                     </Button>
