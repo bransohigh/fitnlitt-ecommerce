@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 interface Hotspot {
   id: string;
-  x: number; // percentage
-  y: number; // percentage
+  x: number; // percentage from left
+  y: number; // percentage from top
   productName: string;
   productPrice: number;
   productImage: string;
@@ -35,78 +36,116 @@ export const StoryBlock: React.FC<StoryBlockProps> = ({
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
   const isImageLeft = imagePosition === 'left';
 
+  const toggleHotspot = (id: string) =>
+    setActiveHotspot(prev => (prev === id ? null : id));
+
   return (
     <div className={`grid md:grid-cols-2 gap-8 md:gap-12 items-center ${!isImageLeft ? 'md:flex-row-reverse' : ''}`}>
-      {/* Image with Hotspots */}
+
+      {/* ── Image + Hotspots ─────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, x: isImageLeft ? -30 : 30 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
-        className={`relative aspect-[4/5] rounded-lg overflow-hidden ${!isImageLeft ? 'md:order-2' : ''}`}
+        className={`relative aspect-[4/5] rounded-lg ${!isImageLeft ? 'md:order-2' : ''}`}
+        /* NOTE: NO overflow-hidden here — it would clip hotspot tooltips.
+           overflow-hidden is applied only to the inner image wrapper below. */
       >
-        <img
-          src={image}
-          alt={title}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
+        {/* Image wrapper — overflow-hidden isolated to image only */}
+        <div className="absolute inset-0 rounded-lg overflow-hidden">
+          <img
+            src={image}
+            alt={title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
 
-        {/* Interactive Hotspots */}
-        {hotspots.map((hotspot) => (
-          <div
-            key={hotspot.id}
-            className="absolute"
-            style={{ 
-              left: `${hotspot.x}%`, 
-              top: `${hotspot.y}%`,
-              transform: 'translate(-50%, -50%)'
-            }}
-            onMouseEnter={() => setActiveHotspot(hotspot.id)}
-            onMouseLeave={() => setActiveHotspot(null)}
-          >
-            {/* Hotspot Marker */}
-            <motion.button
-              className="relative w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-10"
-              whileHover={{ scale: 1.1 }}
+        {/* Hotspots — rendered OUTSIDE the overflow-hidden image wrapper */}
+        {hotspots.map((hotspot) => {
+          // Edge-aware tooltip placement:
+          // x > 60  → show card to the LEFT  (right-full)
+          // x <= 60 → show card to the RIGHT (left-full)
+          // y > 65  → anchor card BOTTOM
+          // y <= 65 → anchor card TOP
+          const rightSide  = hotspot.x > 60;
+          const bottomSide = hotspot.y > 65;
+
+          const hAlignClass = rightSide  ? 'right-full mr-3' : 'left-full ml-3';
+          const vAlignClass = bottomSide ? 'bottom-0'        : 'top-0';
+
+          const isActive = activeHotspot === hotspot.id;
+
+          return (
+            <div
+              key={hotspot.id}
+              className="absolute z-10"
+              style={{
+                left: `${hotspot.x}%`,
+                top:  `${hotspot.y}%`,
+                transform: 'translate(-50%, -50%)',
+              }}
+              onMouseEnter={() => setActiveHotspot(hotspot.id)}
+              onMouseLeave={() => setActiveHotspot(null)}
+              onClick={() => toggleHotspot(hotspot.id)}
             >
-              <Plus className="w-5 h-5 text-[var(--brand-black)]" />
-              
-              {/* Pulse Animation */}
-              <span className="absolute inset-0 rounded-full bg-white/50 animate-ping" />
-            </motion.button>
+              {/* Marker button */}
+              <motion.button
+                aria-label={`Ürünü gör: ${hotspot.productName}`}
+                className={`relative w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-colors z-10
+                  ${isActive
+                    ? 'bg-[var(--primary-coral)] text-white'
+                    : 'bg-white/90 backdrop-blur-sm text-[var(--brand-black)] hover:bg-[var(--primary-coral)] hover:text-white'
+                  }`}
+                whileHover={{ scale: 1.12 }}
+                whileTap={{ scale: 0.96 }}
+              >
+                {isActive ? <X className="w-4 h-4" /> : <Plus className="w-5 h-5" />}
+                {/* Pulse ring — only when inactive */}
+                {!isActive && (
+                  <span className="absolute inset-0 rounded-full bg-white/40 animate-ping pointer-events-none" />
+                )}
+              </motion.button>
 
-            {/* Product Preview Card */}
-            <AnimatePresence>
-              {activeHotspot === hotspot.id && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-white rounded-lg shadow-xl overflow-hidden z-20 pointer-events-none"
-                >
-                  <img
-                    src={hotspot.productImage}
-                    alt={hotspot.productName}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-4">
-                    <h4 className="font-semibold text-sm text-[var(--brand-black)] mb-1">
-                      {hotspot.productName}
-                    </h4>
-                    <p className="text-lg font-bold text-[var(--primary-coral)]">
-                      {hotspot.productPrice}₺
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        ))}
+              {/* Tooltip card — NOT inside overflow-hidden */}
+              <AnimatePresence>
+                {isActive && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.92, y: 6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.92, y: 6 }}
+                    transition={{ duration: 0.18 }}
+                    className={`absolute ${hAlignClass} ${vAlignClass} w-56 bg-white rounded-xl shadow-2xl overflow-hidden z-30 pointer-events-none`}
+                    style={{ maxWidth: 'min(224px, 55vw)' }}
+                  >
+                    {/* Product image */}
+                    <div className="aspect-[4/3] w-full overflow-hidden bg-gray-100">
+                      <img
+                        src={hotspot.productImage}
+                        alt={hotspot.productName}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {/* Details */}
+                    <div className="p-3">
+                      <p className="text-sm font-semibold text-[var(--brand-black)] leading-snug mb-1">
+                        {hotspot.productName}
+                      </p>
+                      <p className="text-base font-bold text-[var(--primary-coral)]">
+                        {hotspot.productPrice.toLocaleString('tr-TR')}₺
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">Görmek için tıkla →</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
       </motion.div>
 
-      {/* Content */}
+      {/* ── Content ──────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, x: isImageLeft ? 30 : -30 }}
         whileInView={{ opacity: 1, x: 0 }}
@@ -116,17 +155,15 @@ export const StoryBlock: React.FC<StoryBlockProps> = ({
       >
         <p className="eyebrow-text mb-3 text-[var(--primary-coral)]">Hikayemiz</p>
         <h2 className="mb-6">{title}</h2>
-        <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-          {description}
-        </p>
+        <p className="text-lg text-gray-600 mb-6 leading-relaxed">{description}</p>
         {ctaText && ctaLink && (
           <div>
             <Button
               size="lg"
               className="bg-[var(--brand-black)] hover:bg-gray-800 text-white"
-              onClick={() => window.location.href = ctaLink}
+              asChild
             >
-              {ctaText}
+              <Link to={ctaLink}>{ctaText}</Link>
             </Button>
           </div>
         )}

@@ -132,15 +132,16 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Desktop Navigation + Mega Menu */}
-        <div className="hidden lg:block border-t border-black/5">
+        <div
+          className="hidden lg:block border-t border-black/5 relative"
+          onMouseLeave={handleMouseLeave}
+        >
           <div className="container-custom">
-            <div className="flex items-center justify-center gap-8 h-12 relative">
+            <div className="flex items-center justify-center gap-8 h-12">
               {navigationItems.map((item) => (
                 <div
                   key={item.id}
-                  className="relative"
-                  onMouseEnter={() => item.items && handleMouseEnter(item.id)}
-                  onMouseLeave={() => item.items && handleMouseLeave()}
+                  onMouseEnter={() => item.items ? handleMouseEnter(item.id) : undefined}
                 >
                   {item.href ? (
                     <Link
@@ -151,23 +152,31 @@ export const Header: React.FC = () => {
                     </Link>
                   ) : (
                     <button
-                      className="text-sm font-medium text-[var(--brand-black)] hover:text-[var(--primary-coral)] transition-colors py-3"
+                      className={`text-sm font-medium transition-colors py-3 ${activeDropdown === item.id ? 'text-[var(--primary-coral)]' : 'text-[var(--brand-black)] hover:text-[var(--primary-coral)]'}`}
                     >
                       {item.label}
                     </button>
-                  )}
-
-                  {/* Mega Menu Trigger */}
-                  {item.items && activeDropdown === item.id && (
-                    <MegaMenu 
-                      collections={item.items} 
-                      onClose={() => setActiveDropdown(null)}
-                    />
                   )}
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Mega Menu — absolute within this full-width nav block */}
+          {navigationItems.map((item) =>
+            item.items && activeDropdown === item.id ? (
+              <div
+                key={item.id}
+                className="absolute top-12 left-0 right-0 z-50"
+                onMouseEnter={() => handleMouseEnter(item.id)}
+              >
+                <MegaMenu
+                  collections={item.items}
+                  onClose={() => setActiveDropdown(null)}
+                />
+              </div>
+            ) : null
+          )}
         </div>
 
         {/* Mobile Menu */}
