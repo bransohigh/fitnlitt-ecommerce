@@ -211,7 +211,7 @@ export function EditorialProductShowcase({
   const sliderPanel = (
     <div className="flex-1 min-w-0">
       <Carousel
-        opts={{ align: 'start', loop: false, dragFree: true }}
+        opts={{ align: 'start', loop: true, dragFree: true }}
         className="w-full"
       >
         <CarouselContent className="-ml-3">
