@@ -324,7 +324,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
             <SheetTitle>Filtreler</SheetTitle>
           </SheetHeader>
           <div className="mt-6">
-            <FilterContent />
+            {FilterContent()}
           </div>
         </SheetContent>
       </Sheet>
@@ -334,7 +334,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
   // Desktop: Sidebar
   return (
     <div className="bg-white rounded-lg border p-6 sticky top-24">
-      <FilterContent />
+      {FilterContent()}
     </div>
   );
 };
