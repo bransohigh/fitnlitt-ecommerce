@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ProductCard } from '@/components/product/ProductCard';
 import { QuickViewModal } from '@/components/product/QuickViewModal';
 import { ProductFilter, FilterState } from '@/components/product/ProductFilter';
@@ -30,10 +30,111 @@ export const Collection: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const productsPerPage = 12;
 
   // Get collection info (for demo, using first collection)
   const collection = collections[0];
+
+  // Parse URL query params on mount to restore filters
+  useEffect(() => {
+    const hash = window.location.hash;
+    const queryString = hash.includes('?') ? hash.split('?')[1] : '';
+    if (!queryString) {
+      setIsInitialized(true);
+      return;
+    }
+
+    const params = new URLSearchParams(queryString);
+    const newFilters: FilterState = { ...filters };
+    let hasChanges = false;
+
+    // Parse sizes
+    const sizesParam = params.get('sizes');
+    if (sizesParam) {
+      newFilters.sizes = sizesParam.split(',').filter(Boolean);
+      hasChanges = true;
+    }
+
+    // Parse colors
+    const colorsParam = params.get('colors');
+    if (colorsParam) {
+      newFilters.colors = decodeURIComponent(colorsParam).split(',').filter(Boolean);
+      hasChanges = true;
+    }
+
+    // Parse price range
+    const minPrice = params.get('minPrice');
+    const maxPrice = params.get('maxPrice');
+    if (minPrice && maxPrice) {
+      newFilters.priceRange = [parseInt(minPrice), parseInt(maxPrice)];
+      hasChanges = true;
+    }
+
+    // Parse collections
+    const collectionsParam = params.get('collections');
+    if (collectionsParam) {
+      newFilters.collections = decodeURIComponent(collectionsParam).split(',').filter(Boolean);
+      hasChanges = true;
+    }
+
+    // Parse boolean flags
+    if (params.get('inStock') === 'true') {
+      newFilters.inStock = true;
+      hasChanges = true;
+    }
+    if (params.get('onSale') === 'true') {
+      newFilters.onSale = true;
+      hasChanges = true;
+    }
+
+    // Parse sort
+    const sortParam = params.get('sort');
+    if (sortParam) {
+      setSortBy(sortParam as SortOption);
+    }
+
+    if (hasChanges) {
+      setFilters(newFilters);
+    }
+    setIsInitialized(true);
+  }, []);
+
+  // Update URL when filters or sort change
+  useEffect(() => {
+    if (!isInitialized) return; // Don't update URL on initial load
+
+    const params = new URLSearchParams();
+
+    // Add filters to URL
+    if (filters.sizes.length > 0) {
+      params.set('sizes', filters.sizes.join(','));
+    }
+    if (filters.colors.length > 0) {
+      params.set('colors', encodeURIComponent(filters.colors.join(',')));
+    }
+    if (filters.priceRange[0] !== 0 || filters.priceRange[1] !== 2000) {
+      params.set('minPrice', filters.priceRange[0].toString());
+      params.set('maxPrice', filters.priceRange[1].toString());
+    }
+    if (filters.collections.length > 0) {
+      params.set('collections', encodeURIComponent(filters.collections.join(',')));
+    }
+    if (filters.inStock) {
+      params.set('inStock', 'true');
+    }
+    if (filters.onSale) {
+      params.set('onSale', 'true');
+    }
+    if (sortBy !== 'recommended') {
+      params.set('sort', sortBy);
+    }
+
+    // Update URL without page reload
+    const queryString = params.toString();
+    const newHash = queryString ? `#collection?${queryString}` : '#collection';
+    window.history.replaceState(null, '', newHash);
+  }, [filters, sortBy, isInitialized]);
 
   const handleOpenQuickView = (product: Product) => {
     setQuickViewProduct(product);

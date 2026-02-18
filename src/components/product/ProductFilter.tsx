@@ -248,15 +248,27 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
 
   // Mobile: Sheet component
   if (isMobile) {
+    // Calculate total active filters
+    const activeFilterCount =
+      filters.sizes.length +
+      filters.colors.length +
+      filters.collections.length +
+      (filters.inStock ? 1 : 0) +
+      (filters.onSale ? 1 : 0) +
+      (filters.priceRange[0] !== 0 || filters.priceRange[1] !== 2000 ? 1 : 0);
+
     return (
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" className="w-full gap-2">
+          <Button variant="outline" className="w-full gap-2 h-11 font-medium">
             <Sliders className="w-4 h-4" />
             Filtreler
-            {(filters.sizes.length > 0 || filters.colors.length > 0) && (
-              <Badge variant="secondary" className="ml-auto">
-                {filters.sizes.length + filters.colors.length}
+            {activeFilterCount > 0 && (
+              <Badge
+                variant="secondary"
+                className="ml-auto bg-[var(--primary-coral)] text-[var(--brand-black)] font-semibold"
+              >
+                {activeFilterCount}
               </Badge>
             )}
           </Button>
