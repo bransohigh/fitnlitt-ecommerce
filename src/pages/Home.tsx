@@ -99,12 +99,12 @@ export const Home: React.FC = () => {
                 <CarouselContent className="-ml-4">
                   {loading
                     ? Array.from({ length: 2 }).map((_, i) => (
-                        <CarouselItem key={i} className="pl-4 basis-4/5 sm:basis-3/5 lg:basis-full">
+                        <CarouselItem key={i} className="pl-4 basis-4/5 sm:basis-3/5 lg:basis-[65%]">
                           <Skeleton className="w-full aspect-[3/4] rounded-2xl" />
                         </CarouselItem>
                       ))
                     : heroProducts.map((product) => (
-                    <CarouselItem key={product.id} className="pl-4 basis-4/5 sm:basis-3/5 lg:basis-full">
+                    <CarouselItem key={product.id} className="pl-4 basis-4/5 sm:basis-3/5 lg:basis-[65%]">
                       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden group">
                         <img
                           src={product.images[0]}
