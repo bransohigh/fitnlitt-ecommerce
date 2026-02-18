@@ -5,10 +5,12 @@ import { useCart } from '@/context/CartContext';
 import { TopBar } from './TopBar';
 import { SearchBar } from './SearchBar';
 import { MegaMenu } from './MegaMenu';
+import { MiniCartDrawer } from '@/components/cart/MiniCartDrawer';
 
 export const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const { totalItems } = useCart();
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -99,14 +101,18 @@ export const Header: React.FC = () => {
               </button>
               
               {/* Cart */}
-              <a href="#cart" className="relative p-2 hover:bg-black/5 rounded-full transition-colors">
+              <button 
+                onClick={() => setCartDrawerOpen(true)}
+                className="relative p-2 hover:bg-black/5 rounded-full transition-colors"
+                aria-label="Sepet"
+              >
                 <ShoppingCart className="w-5 h-5" />
                 {totalItems > 0 && (
                   <span className="absolute -top-1 -right-1 bg-[var(--primary-coral)] text-white text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
                     {totalItems}
                   </span>
                 )}
-              </a>
+              </button>
               
               {/* Account */}
               <button className="hidden sm:block p-2 hover:bg-black/5 rounded-full transition-colors">
@@ -209,6 +215,9 @@ export const Header: React.FC = () => {
           </div>
         )}
       </nav>
+
+      {/* Mini Cart Drawer */}
+      <MiniCartDrawer isOpen={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />
     </header>
   );
 };
