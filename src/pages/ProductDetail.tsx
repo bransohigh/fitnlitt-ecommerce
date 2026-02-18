@@ -13,6 +13,7 @@ import { ProductGallery } from '@/components/product/ProductGallery';
 import { SizeSelector, ColorSelector } from '@/components/product/VariantSelector';
 import { ProductDetails } from '@/components/product/ProductDetails';
 import { FeelIndicator } from '@/components/product/FeelIndicator';
+import { DecisionHelper } from '@/components/product/DecisionHelper';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -296,6 +297,8 @@ export const ProductDetail: React.FC = () => {
                   />
                 </Button>
               </div>
+
+              <DecisionHelper selectedSize={selectedSize || undefined} />
             </div>
 
             {/* Trust Indicators */}
