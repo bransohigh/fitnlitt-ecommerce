@@ -179,7 +179,7 @@ export const SizeGuideModal: React.FC<SizeGuideModalProps> = ({ open, onClose })
               Ölçüleriniz iki beden arasındaysa, daha büyük bedeni seçmenizi öneririz.
             </p>
             <Button variant="outline" asChild className="gap-2">
-              <a href="#contact">
+              <a href="/contact">
                 <span>Destek Alın</span>
               </a>
             </Button>

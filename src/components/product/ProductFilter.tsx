@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, ChevronDown, Sliders } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
+import { Facets } from '@/lib/api-client';
 
 export interface FilterState {
   sizes: string[];
@@ -20,10 +21,11 @@ interface ProductFilterProps {
   filters: FilterState;
   onFilterChange: (filters: FilterState) => void;
   onClearFilters: () => void;
+  facets?: Facets | null;
   isMobile?: boolean;
 }
 
-const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const availableColors = [
   { name: 'Siyah', hex: '#000000' },
   { name: 'Beyaz', hex: '#FFFFFF' },
@@ -31,20 +33,18 @@ const availableColors = [
   { name: 'Mor', hex: '#AB47BC' },
   { name: 'Kırmızı', hex: '#D32F2F' },
   { name: 'Mavi', hex: '#1976D2' },
-];
-
-const availableCollections = [
-  'Baddie Collection',
-  'Timeless Collection',
-  'Everyday Collection',
-  'Latex Korse',
-  'New In',
+  { name: 'Ten', hex: '#DDC4A5' },
+  { name: 'Mercan', hex: '#FF6F61' },
+  { name: 'Bordo', hex: '#800020' },
+  { name: 'Lavanta', hex: '#E6E6FA' },
+  { name: 'Lacivert', hex: '#000080' },
 ];
 
 export const ProductFilter: React.FC<ProductFilterProps> = ({
   filters,
   onFilterChange,
   onClearFilters,
+  facets,
   isMobile = false,
 }) => {
   const [expandedSections, setExpandedSections] = useState({
@@ -54,6 +54,25 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
     collection: false,
     stock: true,
   });
+
+  // Get sizes from facets or fall back to defaults
+  const availableSizes = facets?.sizes?.length 
+    ? facets.sizes.map(s => ({ value: s.value, count: s.count }))
+    : defaultSizes.map(s => ({ value: s, count: 0 }));
+
+  // Get price range from facets
+  const priceMin = facets?.price?.min || 0;
+  const priceMax = facets?.price?.max || 2000;
+
+  // Get color counts from facets
+  const getColorCount = (colorName: string): number => {
+    if (!facets?.colors) return 0;
+    const facetColor = facets.colors.find(c => c.value === colorName);
+    return facetColor?.count || 0;
+  };
+
+  // Get collections from facets
+  const availableCollections = facets?.collections || [];
 
   const toggleSize = (size: string) => {
     const newSizes = filters.sizes.includes(size)
@@ -108,19 +127,30 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
         </button>
         {expandedSections.size && (
           <div className="grid grid-cols-3 gap-2">
-            {availableSizes.map((size) => (
-              <button
-                key={size}
-                onClick={() => toggleSize(size)}
-                className={`py-2 px-4 border rounded-md text-sm font-medium transition-colors ${
-                  filters.sizes.includes(size)
-                    ? 'border-[var(--brand-black)] bg-[var(--brand-black)] text-white'
-                    : 'border-gray-300 hover:border-[var(--brand-black)]'
-                }`}
-              >
-                {size}
-              </button>
-            ))}
+            {availableSizes.map((sizeOption) => {
+              const isDisabled = sizeOption.count === 0;
+              const isSelected = filters.sizes.includes(sizeOption.value);
+              
+              return (
+                <button
+                  key={sizeOption.value}
+                  onClick={() => !isDisabled && toggleSize(sizeOption.value)}
+                  disabled={isDisabled && !isSelected}
+                  className={`py-2 px-3 border rounded-md text-sm font-medium transition-colors relative ${
+                    isSelected
+                      ? 'border-[var(--brand-black)] bg-[var(--brand-black)] text-white'
+                      : isDisabled
+                      ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                      : 'border-gray-300 hover:border-[var(--brand-black)]'
+                  }`}
+                >
+                  {sizeOption.value}
+                  {sizeOption.count > 0 && !isSelected && (
+                    <span className="text-xs text-gray-500 ml-1">({sizeOption.count})</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -138,26 +168,36 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
         </button>
         {expandedSections.color && (
           <div className="grid grid-cols-4 gap-3">
-            {availableColors.map((color) => (
-              <button
-                key={color.name}
-                onClick={() => toggleColor(color.name)}
-                className="group flex flex-col items-center gap-1"
-              >
-                <div
-                  className={`w-10 h-10 rounded-full border-2 transition-all ${
-                    filters.colors.includes(color.name)
-                      ? 'border-[var(--brand-black)] scale-110'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                  style={{
-                    backgroundColor: color.hex,
-                    boxShadow: color.hex === '#FFFFFF' ? 'inset 0 0 0 1px #e5e5e5' : 'none',
-                  }}
-                />
-                <span className="text-xs text-gray-600 text-center">{color.name}</span>
-              </button>
-            ))}
+            {availableColors.map((color) => {
+              const count = getColorCount(color.name);
+              const isDisabled = count === 0;
+              const isSelected = filters.colors.includes(color.name);
+
+              return (
+                <button
+                  key={color.name}
+                  onClick={() => !isDisabled && toggleColor(color.name)}
+                  disabled={isDisabled && !isSelected}
+                  className={`group flex flex-col items-center gap-1 ${isDisabled && !isSelected ? 'opacity-30 cursor-not-allowed' : ''}`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-full border-2 transition-all ${
+                      isSelected
+                        ? 'border-[var(--brand-black)] scale-110'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                    style={{
+                      backgroundColor: color.hex,
+                      boxShadow: color.hex === '#FFFFFF' ? 'inset 0 0 0 1px #e5e5e5' : 'none',
+                    }}
+                  />
+                  <span className="text-xs text-gray-600 text-center">
+                    {color.name}
+                    {count > 0 && !isSelected && <span className="text-gray-400"> ({count})</span>}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -176,8 +216,8 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
         {expandedSections.price && (
           <div className="space-y-4">
             <Slider
-              min={0}
-              max={2000}
+              min={priceMin}
+              max={priceMax}
               step={50}
               value={filters.priceRange}
               onValueChange={(value) => onFilterChange({ ...filters, priceRange: value as [number, number] })}
@@ -187,38 +227,44 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
               <span>₺{filters.priceRange[0]}</span>
               <span>₺{filters.priceRange[1]}</span>
             </div>
+            {(priceMin > 0 || priceMax < 2000) && (
+              <p className="text-xs text-gray-500">Mevcut aralık: ₺{priceMin} - ₺{priceMax}</p>
+            )}
           </div>
         )}
       </div>
 
       {/* Collection Filter */}
-      <div className="space-y-3">
-        <button
-          onClick={() => toggleSection('collection')}
-          className="flex items-center justify-between w-full text-left"
-        >
-          <span className="font-medium">Koleksiyon</span>
-          <ChevronDown
-            className={`w-4 h-4 transition-transform ${expandedSections.collection ? 'rotate-180' : ''}`}
-          />
-        </button>
-        {expandedSections.collection && (
-          <div className="space-y-2">
-            {availableCollections.map((collection) => (
-              <div key={collection} className="flex items-center gap-2">
-                <Checkbox
-                  id={`collection-${collection}`}
-                  checked={filters.collections.includes(collection)}
-                  onCheckedChange={() => toggleCollection(collection)}
-                />
-                <Label htmlFor={`collection-${collection}`} className="text-sm cursor-pointer">
-                  {collection}
-                </Label>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {availableCollections.length > 0 && (
+        <div className="space-y-3">
+          <button
+            onClick={() => toggleSection('collection')}
+            className="flex items-center justify-between w-full text-left"
+          >
+            <span className="font-medium">Koleksiyon</span>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${expandedSections.collection ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {expandedSections.collection && (
+            <div className="space-y-2">
+              {availableCollections.map((collection) => (
+                <div key={collection.slug} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`collection-${collection.slug}`}
+                    checked={filters.collections.includes(collection.title)}
+                    onCheckedChange={() => toggleCollection(collection.title)}
+                  />
+                  <Label htmlFor={`collection-${collection.slug}`} className="text-sm cursor-pointer flex-1">
+                    {collection.title}
+                    <span className="text-xs text-gray-500 ml-1">({collection.count})</span>
+                  </Label>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Stock & Sale Toggles */}
       <div className="space-y-3 pt-4 border-t">

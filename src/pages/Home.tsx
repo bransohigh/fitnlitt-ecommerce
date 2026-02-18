@@ -242,7 +242,7 @@ export const Home: React.FC = () => {
                 productName: products[2].name,
                 productPrice: products[2].price,
                 productImage: products[2].images[0],
-                productLink: '#product'
+                productLink: `/product/${products[2].slug}`
               },
               {
                 id: 'leggings',
@@ -251,7 +251,7 @@ export const Home: React.FC = () => {
                 productName: products[1].name,
                 productPrice: products[1].price,
                 productImage: products[1].images[0],
-                productLink: '#product'
+                productLink: `/product/${products[1].slug}`
               }
             ]}
           />
@@ -276,7 +276,7 @@ export const Home: React.FC = () => {
                 productName: products[3].name,
                 productPrice: products[3].price,
                 productImage: products[3].images[0],
-                productLink: '#product'
+                productLink: `/product/${products[3].slug}`
               }
             ]}
           />

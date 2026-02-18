@@ -25,14 +25,21 @@ export default defineConfig({
     // }),
     viteSingleFile(),
   ],
-  // server: {
-  //   hmr: {
-  //     overlay: true,
-  //   },
-  //   watch: {
-  //     ignored: ["**/*.tsbuildinfo"],
-  //   },
-  // },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+    historyApiFallback: true,
+    // hmr: {
+    //   overlay: true,
+    // },
+    // watch: {
+    //   ignored: ["**/*.tsbuildinfo"],
+    // },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

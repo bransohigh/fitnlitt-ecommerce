@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Eye } from 'lucide-react';
 import { Product } from '@/data/products';
 import { useCart } from '@/context/CartContext';
@@ -69,12 +70,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
 
   const badgeType = getBadgeType();
 
+  const productUrl = `/product/${product.slug}`;
+
   return (
-    <div
+    <Link
+      to={productUrl}
       className="group block cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => window.location.href = '#product'}
     >
       <div className="relative overflow-hidden rounded-xl bg-[var(--brand-cream)] aspect-[3/4] shadow-sm group-hover:shadow-xl transition-shadow duration-300">
         {/* Product Image */}
@@ -231,6 +234,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
           </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 };

@@ -1,9 +1,13 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { ProductCard } from '@/components/product/ProductCard';
 import { QuickViewModal } from '@/components/product/QuickViewModal';
 import { ProductFilter, FilterState } from '@/components/product/ProductFilter';
 import { ActiveFilters } from '@/components/product/ActiveFilters';
-import { products, collections, Product } from '@/data/products';
+import { SearchBar } from '@/components/product/SearchBar';
+import { Product } from '@/data/products';
+import { fetchProducts, fetchCollection, type APIProduct, type Facets, type Collection } from '@/lib/api-client';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import {
   Select,
   SelectContent,
@@ -13,10 +17,12 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { AlertCircle } from 'lucide-react';
 
-type SortOption = 'recommended' | 'price-asc' | 'price-desc' | 'newest' | 'bestsellers';
+type SortOption = 'recommended' | 'price_asc' | 'price_desc' | 'newest';
 
 export const Collection: React.FC = () => {
+  const { slug: propCollectionSlug } = useParams<{ slug: string }>();
   // State management
   const [filters, setFilters] = useState<FilterState>({
     sizes: [],
@@ -28,18 +34,33 @@ export const Collection: React.FC = () => {
   });
   const [sortBy, setSortBy] = useState<SortOption>('recommended');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const productsPerPage = 12;
+  
+  // API Data
+  const [products, setProducts] = useState<APIProduct[]>([]);
+  const [collection, setCollection] = useState<Collection | null>(null);
+  const [facets, setFacets] = useState<Facets | null>(null);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  
+  const productsPerPage = 24;
+  
+  // Debounce search query to avoid excessive API calls
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 400);
 
-  // Get collection info (for demo, using first collection)
-  const collection = collections[0];
+  // Get collection slug from prop or URL
+  const getCollectionSlug = (): string | null => {
+    if (propCollectionSlug) return propCollectionSlug;
+    return null;
+  };
 
   // Parse URL query params on mount to restore filters
   useEffect(() => {
-    const hash = window.location.hash;
-    const queryString = hash.includes('?') ? hash.split('?')[1] : '';
+    const queryString = window.location.search.slice(1);
     if (!queryString) {
       setIsInitialized(true);
       return;
@@ -64,10 +85,13 @@ export const Collection: React.FC = () => {
     }
 
     // Parse price range
-    const minPrice = params.get('minPrice');
-    const maxPrice = params.get('maxPrice');
-    if (minPrice && maxPrice) {
-      newFilters.priceRange = [parseInt(minPrice), parseInt(maxPrice)];
+    const minPrice = params.get('priceMin');
+    const maxPrice = params.get('priceMax');
+    if (minPrice || maxPrice) {
+      newFilters.priceRange = [
+        minPrice ? parseInt(minPrice) : 0,
+        maxPrice ? parseInt(maxPrice) : 2000
+      ];
       hasChanges = true;
     }
 
@@ -88,10 +112,22 @@ export const Collection: React.FC = () => {
       hasChanges = true;
     }
 
+    // Parse search query
+    const qParam = params.get('q');
+    if (qParam) {
+      setSearchQuery(qParam);
+    }
+
     // Parse sort
     const sortParam = params.get('sort');
-    if (sortParam) {
+    if (sortParam && ['recommended', 'price_asc', 'price_desc', 'newest'].includes(sortParam)) {
       setSortBy(sortParam as SortOption);
+    }
+
+    // Parse page
+    const pageParam = params.get('page');
+    if (pageParam) {
+      setCurrentPage(parseInt(pageParam) || 1);
     }
 
     if (hasChanges) {
@@ -100,11 +136,16 @@ export const Collection: React.FC = () => {
     setIsInitialized(true);
   }, []);
 
-  // Update URL when filters or sort change
+  // Update URL when filters, sort, search, or page change
   useEffect(() => {
     if (!isInitialized) return; // Don't update URL on initial load
 
     const params = new URLSearchParams();
+
+    // Add search query
+    if (debouncedSearchQuery) {
+      params.set('q', debouncedSearchQuery);
+    }
 
     // Add filters to URL
     if (filters.sizes.length > 0) {
@@ -114,8 +155,8 @@ export const Collection: React.FC = () => {
       params.set('colors', encodeURIComponent(filters.colors.join(',')));
     }
     if (filters.priceRange[0] !== 0 || filters.priceRange[1] !== 2000) {
-      params.set('minPrice', filters.priceRange[0].toString());
-      params.set('maxPrice', filters.priceRange[1].toString());
+      params.set('priceMin', filters.priceRange[0].toString());
+      params.set('priceMax', filters.priceRange[1].toString());
     }
     if (filters.collections.length > 0) {
       params.set('collections', encodeURIComponent(filters.collections.join(',')));
@@ -129,12 +170,75 @@ export const Collection: React.FC = () => {
     if (sortBy !== 'recommended') {
       params.set('sort', sortBy);
     }
+    if (currentPage > 1) {
+      params.set('page', currentPage.toString());
+    }
 
     // Update URL without page reload
+    const collectionSlug = getCollectionSlug();
+    const baseHash = collectionSlug ? `#collection/${collectionSlug}` : '#collection';
     const queryString = params.toString();
-    const newHash = queryString ? `#collection?${queryString}` : '#collection';
+    const newHash = queryString ? `${baseHash}?${queryString}` : baseHash;
     window.history.replaceState(null, '', newHash);
-  }, [filters, sortBy, isInitialized]);
+  }, [filters, sortBy, debouncedSearchQuery, currentPage, isInitialized]);
+
+  // Fetch collection info
+  useEffect(() => {
+    const collectionSlug = getCollectionSlug();
+    if (!collectionSlug) {
+      setCollection(null);
+      return;
+    }
+
+    fetchCollection(collectionSlug)
+      .then(({ collection }) => setCollection(collection))
+      .catch(err => {
+        console.error('Failed to fetch collection:', err);
+        // Don't block if collection fetch fails
+      });
+  }, []);
+
+  // Fetch products when filters, sort, search, or page change
+  const fetchProductsData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const collectionSlug = getCollectionSlug();
+      
+      const response = await fetchProducts({
+        collection: collectionSlug || undefined,
+        q: debouncedSearchQuery || undefined,
+        sort: sortBy === 'recommended' ? undefined : sortBy,
+        page: currentPage,
+        limit: productsPerPage,
+        sizes: filters.sizes.length > 0 ? filters.sizes : undefined,
+        colors: filters.colors.length > 0 ? filters.colors : undefined,
+        priceMin: filters.priceRange[0] !== 0 ? filters.priceRange[0] : undefined,
+        priceMax: filters.priceRange[1] !== 2000 ? filters.priceRange[1] : undefined,
+        inStock: filters.inStock || undefined,
+        onSale: filters.onSale || undefined,
+        include: ['images', 'collection'],
+      });
+
+      setProducts(response.items);
+      setTotalProducts(response.meta.total);
+      setTotalPages(response.meta.totalPages);
+      setFacets(response.facets || null);
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+      setError('Ürünler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+      setProducts([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters, sortBy, debouncedSearchQuery, currentPage]);
+
+  useEffect(() => {
+    if (isInitialized) {
+      fetchProductsData();
+    }
+  }, [fetchProductsData, isInitialized]);
 
   const handleOpenQuickView = (product: Product) => {
     setQuickViewProduct(product);
@@ -144,67 +248,10 @@ export const Collection: React.FC = () => {
     setQuickViewProduct(null);
   };
 
-  // Filter and sort products
-  const filteredProducts = useMemo(() => {
-    let filtered = [...products];
-
-    // Apply size filter
-    if (filters.sizes.length > 0) {
-      filtered = filtered.filter((p) => p.sizes.some((s) => filters.sizes.includes(s)));
-    }
-
-    // Apply color filter
-    if (filters.colors.length > 0) {
-      filtered = filtered.filter((p) => p.colors.some((c) => filters.colors.includes(c.name)));
-    }
-
-    // Apply price range filter
-    filtered = filtered.filter(
-      (p) => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]
-    );
-
-    // Apply collection filter
-    if (filters.collections.length > 0) {
-      filtered = filtered.filter((p) => filters.collections.includes(p.category));
-    }
-
-    // Apply on sale filter
-    if (filters.onSale) {
-      filtered = filtered.filter((p) => p.compareAtPrice && p.compareAtPrice > p.price);
-    }
-
-    // Apply sorting
-    switch (sortBy) {
-      case 'price-asc':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'newest':
-        filtered.sort((a, b) => (a.badge === 'Yeni' ? -1 : 1));
-        break;
-      case 'bestsellers':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      default:
-        break;
-    }
-
-    return filtered;
-  }, [filters, sortBy]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * productsPerPage,
-    currentPage * productsPerPage
-  );
-
   // Filter handlers
   const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to page 1 when filters change
   };
 
   const handleClearFilters = () => {
@@ -216,38 +263,75 @@ export const Collection: React.FC = () => {
       inStock: false,
       onSale: false,
     });
+    setSearchQuery('');
     setCurrentPage(1);
   };
 
   const handleRemoveSize = (size: string) => {
     setFilters({ ...filters, sizes: filters.sizes.filter((s) => s !== size) });
+    setCurrentPage(1);
   };
 
   const handleRemoveColor = (color: string) => {
     setFilters({ ...filters, colors: filters.colors.filter((c) => c !== color) });
+    setCurrentPage(1);
   };
 
   const handleRemoveCollection = (collection: string) => {
     setFilters({ ...filters, collections: filters.collections.filter((c) => c !== collection) });
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1); // Reset to page 1 when search changes
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value as SortOption);
+    setCurrentPage(1); // Reset to page 1 when sort changes
+  };
+
+  // Convert API product to legacy Product format for ProductCard
+  const convertToLegacyProduct = (apiProduct: APIProduct): Product => {
+    return {
+      id: apiProduct.id,
+      name: apiProduct.title,
+      price: apiProduct.price,
+      compareAtPrice: apiProduct.compare_at || undefined,
+      images: apiProduct.images?.map(img => img.url) || [apiProduct.primaryImage?.url || ''],
+      colors: apiProduct.variantsSummary.colors.map(color => ({
+        name: color,
+        hex: '#000000', // Default color, not provided by API
+      })),
+      sizes: apiProduct.variantsSummary.sizes,
+      category: apiProduct.collection?.title || '',
+      rating: 4.5, // Default rating
+      reviewCount: 0,
+      badge: apiProduct.badges.isNew ? 'Yeni' : apiProduct.badges.isSale ? 'İndirim' : undefined,
+      inStock: apiProduct.variantsSummary.inStock,
+    };
   };
 
   return (
     <div className="min-h-screen bg-white">
       {/* Collection Banner */}
-      <section className="relative h-[40vh] md:h-[50vh] overflow-hidden">
-        <img
-          src={collection.image}
-          alt={collection.name}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
-        <div className="absolute inset-0 flex flex-col justify-end">
-          <div className="container-custom pb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">{collection.name}</h1>
-            <p className="text-lg text-gray-200 max-w-2xl">{collection.description}</p>
+      {collection && (
+        <section className="relative h-[40vh] md:h-[50vh] overflow-hidden">
+          <img
+            src={collection.hero_image}
+            alt={collection.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+          <div className="absolute inset-0 flex flex-col justify-end">
+            <div className="container-custom pb-12">
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">{collection.title}</h1>
+              <p className="text-lg text-gray-200 max-w-2xl">{collection.description}</p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Main Content */}
       <section className="py-8 md:py-12">
@@ -259,11 +343,20 @@ export const Collection: React.FC = () => {
                 filters={filters}
                 onFilterChange={handleFilterChange}
                 onClearFilters={handleClearFilters}
+                facets={facets}
               />
             </aside>
 
             {/* Products Section */}
             <div className="space-y-6">
+              {/* Search Bar */}
+              <SearchBar
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Ürün ara..."
+                className="w-full"
+              />
+
               {/* Toolbar */}
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 {/* Mobile Filter Button */}
@@ -272,26 +365,32 @@ export const Collection: React.FC = () => {
                     filters={filters}
                     onFilterChange={handleFilterChange}
                     onClearFilters={handleClearFilters}
+                    facets={facets}
                     isMobile
                   />
                 </div>
 
                 {/* Product Count */}
                 <div className="text-sm text-gray-600">
-                  <span className="font-semibold">{filteredProducts.length}</span> ürün gösteriliyor
+                  {isLoading ? (
+                    <Skeleton className="h-5 w-32" />
+                  ) : (
+                    <>
+                      <span className="font-semibold">{totalProducts}</span> ürün gösteriliyor
+                    </>
+                  )}
                 </div>
 
                 {/* Sort Dropdown */}
-                <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                <Select value={sortBy} onValueChange={handleSortChange}>
                   <SelectTrigger className="w-full sm:w-[200px]">
                     <SelectValue placeholder="Sırala" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="recommended">Önerilen</SelectItem>
-                    <SelectItem value="price-asc">Fiyat (Artan)</SelectItem>
-                    <SelectItem value="price-desc">Fiyat (Azalan)</SelectItem>
+                    <SelectItem value="price_asc">Fiyat (Artan)</SelectItem>
+                    <SelectItem value="price_desc">Fiyat (Azalan)</SelectItem>
                     <SelectItem value="newest">Yeni Gelenler</SelectItem>
-                    <SelectItem value="bestsellers">Çok Satanlar</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -307,6 +406,25 @@ export const Collection: React.FC = () => {
                 onClearAll={handleClearFilters}
               />
 
+              {/* Error State */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-red-800 font-medium">Hata</p>
+                    <p className="text-red-700 text-sm">{error}</p>
+                    <Button
+                      onClick={fetchProductsData}
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                    >
+                      Tekrar Dene
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Product Grid */}
               {isLoading ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -318,10 +436,12 @@ export const Collection: React.FC = () => {
                     </div>
                   ))}
                 </div>
-              ) : filteredProducts.length === 0 ? (
+              ) : products.length === 0 ? (
                 <div className="text-center py-20">
                   <p className="text-lg text-gray-600 mb-6">
-                    Aradığınız kriterlere uygun ürün bulunamadı.
+                    {searchQuery
+                      ? `"${searchQuery}" için sonuç bulunamadı.`
+                      : 'Aradığınız kriterlere uygun ürün bulunamadı.'}
                   </p>
                   <Button onClick={handleClearFilters} variant="outline">
                     Filtreleri Temizle
@@ -329,14 +449,18 @@ export const Collection: React.FC = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {paginatedProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} onQuickView={handleOpenQuickView} />
+                  {products.map((apiProduct) => (
+                    <ProductCard 
+                      key={apiProduct.id} 
+                      product={convertToLegacyProduct(apiProduct)} 
+                      onQuickView={handleOpenQuickView} 
+                    />
                   ))}
                 </div>
               )}
 
               {/* Pagination */}
-              {totalPages > 1 && (
+              {totalPages > 1 && !isLoading && (
                 <div className="flex items-center justify-center gap-2 pt-8">
                   <Button
                     variant="outline"

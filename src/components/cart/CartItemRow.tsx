@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Minus, Plus, X } from 'lucide-react';
 import { Product } from '@/data/products';
 import { config } from '@/lib/config';
@@ -23,11 +24,12 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({
   const itemTotal = product.price * quantity;
   const canDecrease = quantity > 1;
   const canIncrease = quantity < config.MAX_CART_QUANTITY;
+  const productUrl = `/product/${product.slug}`;
 
   return (
     <div className="flex gap-4 p-4 hover:bg-gray-50 transition-colors group">
       {/* Product Image */}
-      <a href="#product" className="flex-shrink-0">
+      <Link to={productUrl} className="flex-shrink-0">
         <div className="w-20 h-20 rounded-lg overflow-hidden bg-[var(--brand-cream)]">
           <img
             src={product.images[0]}
@@ -35,16 +37,16 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
         </div>
-      </a>
+      </Link>
 
       {/* Product Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <a href="#product" className="flex-1 min-w-0">
+          <Link to={productUrl} className="flex-1 min-w-0">
             <h4 className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-[var(--primary-coral)] transition-colors">
               {product.name}
             </h4>
-          </a>
+          </Link>
           <button
             onClick={onRemove}
             className="flex-shrink-0 p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"

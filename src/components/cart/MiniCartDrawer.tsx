@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, ShoppingBag, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/context/CartContext';
@@ -12,6 +13,7 @@ interface MiniCartDrawerProps {
 }
 
 export const MiniCartDrawer: React.FC<MiniCartDrawerProps> = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const { items, subtotal, totalItems, updateQuantity, removeFromCart } = useCart();
 
   // Lock body scroll when drawer is open
@@ -158,7 +160,7 @@ export const MiniCartDrawer: React.FC<MiniCartDrawerProps> = ({ isOpen, onClose 
                 <div className="space-y-2">
                   <Button
                     onClick={() => {
-                      window.location.href = '#checkout';
+                      navigate('/checkout');
                       onClose();
                     }}
                     className="w-full bg-[var(--primary-coral)] hover:bg-[var(--primary-peach)] text-white font-semibold h-12 text-base group"
@@ -168,7 +170,7 @@ export const MiniCartDrawer: React.FC<MiniCartDrawerProps> = ({ isOpen, onClose 
                   </Button>
                   <Button
                     onClick={() => {
-                      window.location.href = '#cart';
+                      navigate('/cart');
                       onClose();
                     }}
                     variant="outline"

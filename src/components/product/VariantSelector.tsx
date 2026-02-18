@@ -24,9 +24,9 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-gray-900">Beden Seç</label>
-        <button className="text-sm text-[var(--primary-coral)] hover:underline">
+      {/*   <button className="text-sm text-[var(--primary-coral)] hover:underline">
           Beden Rehberi
-        </button>
+        </button> */}
       </div>
       <div className="grid grid-cols-4 gap-2">
         {sizes.map((size) => {

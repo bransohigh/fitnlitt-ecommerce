@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CartProvider } from '@/context/CartContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { AnnouncementBar } from '@/components/layout/AnnouncementBar';
+import { ScrollToTop } from '@/components/ScrollToTop';
 import { Home } from '@/pages/Home';
 import { Collection } from '@/pages/Collection';
 import { ProductDetail } from '@/pages/ProductDetail';
@@ -11,57 +13,103 @@ import { Checkout } from '@/pages/Checkout';
 import { About } from '@/pages/About';
 import { Contact } from '@/pages/Contact';
 import { Loyalty } from '@/pages/Loyalty';
+import { Account } from '@/pages/Account';
+import { AdminLogin } from '@/pages/admin/AdminLogin';
+import { AdminDashboard } from '@/pages/admin/AdminDashboard';
+import { AdminProducts } from '@/pages/admin/AdminProducts';
+import { AdminCollections } from '@/pages/admin/AdminCollections';
 
-type Page = 'home' | 'collection' | 'product' | 'cart' | 'checkout' | 'about' | 'contact' | 'loyalty';
+// Protected Route Component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Layout wrapper for public pages
+function PublicLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <AnnouncementBar />
+      <Header />
+      <main className="flex-1">{children}</main>
+      <Footer />
+    </>
+  );
+}
+
+// Layout wrapper for admin pages
+function AdminLayout({ children }: { children: React.ReactNode }) {
+  return <main>{children}</main>;
+}
+
+function AppContent() {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <ScrollToTop />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
+        <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
+        <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
+        <Route path="/loyalty" element={<PublicLayout><Loyalty /></PublicLayout>} />
+        <Route path="/cart" element={<PublicLayout><Cart /></PublicLayout>} />
+        <Route path="/checkout" element={<PublicLayout><Checkout /></PublicLayout>} />
+        <Route path="/collection/:slug" element={<PublicLayout><Collection /></PublicLayout>} />
+        <Route path="/product/:slug" element={<PublicLayout><ProductDetail /></PublicLayout>} />
+        <Route path="/account" element={<PublicLayout><Account /></PublicLayout>} />
+
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminLayout><AdminDashboard /></AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/products"
+          element={
+            <ProtectedRoute>
+              <AdminLayout><AdminProducts /></AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/collections"
+          element={
+            <ProtectedRoute>
+              <AdminLayout><AdminCollections /></AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 404 Redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  );
+}
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
-
-  // Simple client-side routing simulation
-  React.useEffect(() => {
-    const handleNavigation = () => {
-      const hash = window.location.hash.slice(1) || 'home';
-      setCurrentPage(hash as Page);
-    };
-
-    window.addEventListener('hashchange', handleNavigation);
-    handleNavigation();
-
-    return () => window.removeEventListener('hashchange', handleNavigation);
-  }, []);
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'collection':
-        return <Collection />;
-      case 'product':
-        return <ProductDetail />;
-      case 'cart':
-        return <Cart />;
-      case 'checkout':
-        return <Checkout />;
-      case 'about':
-        return <About />;
-      case 'contact':
-        return <Contact />;
-      case 'loyalty':
-        return <Loyalty />;
-      default:
-        return <Home />;
-    }
-  };
-
   return (
-    <CartProvider>
-      <div className="min-h-screen flex flex-col">
-        <AnnouncementBar />
-        <Header />
-        <main className="flex-1">
-          {renderPage()}
-        </main>
-        <Footer />
-      </div>
-    </CartProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <CartProvider>
+          <AppContent />
+        </CartProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

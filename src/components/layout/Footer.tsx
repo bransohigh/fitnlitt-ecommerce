@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Instagram, Mail, Shield, Truck, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,11 +46,11 @@ export const Footer: React.FC = () => {
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Koleksiyonlar</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#collection" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">She Moves</a></li>
-              <li><a href="#collection" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Latex Korse</a></li>
-              <li><a href="#collection" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Juicy Collection</a></li>
-              <li><a href="#collection" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Baddie Collection</a></li>
-              <li><a href="#collection" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">2nd SKN</a></li>
+              <li><Link to="/collection/she-moves" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">She Moves</Link></li>
+              <li><Link to="/collection/latex-korse" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Latex Korse</Link></li>
+              <li><Link to="/collection/juicy-collection" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Juicy Collection</Link></li>
+              <li><Link to="/collection/baddie-collection" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Baddie Collection</Link></li>
+              <li><Link to="/collection/2nd-skn" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">2nd SKN</Link></li>
             </ul>
           </div>
 
@@ -57,10 +58,10 @@ export const Footer: React.FC = () => {
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Müşteri Hizmetleri</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">İletişim</a></li>
-              <li><a href="#contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">İade ve Değişim</a></li>
-              <li><a href="#contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Kargo Bilgileri</a></li>
-              <li><a href="#contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Sıkça Sorulan Sorular</a></li>
+              <li><Link to="/contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">İletişim</Link></li>
+              <li><Link to="/contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">İade ve Değişim</Link></li>
+              <li><Link to="/contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Kargo Bilgileri</Link></li>
+              <li><Link to="/contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Sıkça Sorulan Sorular</Link></li>
             </ul>
           </div>
 
@@ -68,10 +69,10 @@ export const Footer: React.FC = () => {
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Kurumsal</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#about" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Hakkımızda</a></li>
-              <li><a href="#loyalty" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Loyalty Program</a></li>
-              <li><a href="#about" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Gizlilik Politikası</a></li>
-              <li><a href="#about" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Kullanım Koşulları</a></li>
+              <li><Link to="/about" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Hakkımızda</Link></li>
+              <li><Link to="/loyalty" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Loyalty Program</Link></li>
+              <li><Link to="/about" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Gizlilik Politikası</Link></li>
+              <li><Link to="/about" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Kullanım Koşulları</Link></li>
             </ul>
           </div>
 

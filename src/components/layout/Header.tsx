@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, Heart } from 'lucide-react';
 import { collections } from '@/data/products';
 import { useCart } from '@/context/CartContext';
 import { TopBar } from './TopBar';
-import { SearchBar } from './SearchBar';
+import { SearchBox } from './SearchBox';
 import { MegaMenu } from './MegaMenu';
 import { MiniCartDrawer } from '@/components/cart/MiniCartDrawer';
 
@@ -45,22 +46,22 @@ export const Header: React.FC = () => {
     {
       id: 'new',
       label: 'Yeni Ürünler',
-      href: '#collection',
+      href: '/collection/yeni',
     },
     {
       id: 'about',
       label: 'Hakkımızda',
-      href: '#about',
+      href: '/about',
     },
     {
       id: 'contact',
       label: 'İletişim',
-      href: '#contact',
+      href: '/contact',
     },
     {
       id: 'loyalty',
       label: 'Loyalty Points',
-      href: '#loyalty',
+      href: '/loyalty',
     },
   ];
 
@@ -74,15 +75,15 @@ export const Header: React.FC = () => {
         <div className="container-custom">
           <div className="flex items-center justify-between h-16 lg:h-18">
             {/* Logo */}
-            <a href="#home" className="flex items-center space-x-2 flex-shrink-0">
+            <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
               <span className="text-xl lg:text-2xl font-semibold text-[var(--brand-black)]">
                 Fitnlitt
               </span>
-            </a>
+            </Link>
 
             {/* Desktop Search Bar */}
-            <div className="hidden lg:block flex-1">
-              <SearchBar />
+            <div className="hidden lg:block flex-1 px-6">
+              <SearchBox />
             </div>
 
             {/* Right Actions */}
@@ -115,9 +116,9 @@ export const Header: React.FC = () => {
               </button>
               
               {/* Account */}
-              <button className="hidden sm:block p-2 hover:bg-black/5 rounded-full transition-colors">
+              <Link to="/account" className="hidden sm:block p-2 hover:bg-black/5 rounded-full transition-colors" aria-label="Hesabım">
                 <User className="w-5 h-5" />
-              </button>
+              </Link>
 
               {/* Mobile Menu Button */}
               <button
@@ -142,12 +143,12 @@ export const Header: React.FC = () => {
                   onMouseLeave={() => item.items && handleMouseLeave()}
                 >
                   {item.href ? (
-                    <a
-                      href={item.href}
+                    <Link
+                      to={item.href}
                       className="text-sm font-medium text-[var(--brand-black)] hover:text-[var(--primary-coral)] transition-colors py-3 inline-block"
                     >
                       {item.label}
-                    </a>
+                    </Link>
                   ) : (
                     <button
                       className="text-sm font-medium text-[var(--brand-black)] hover:text-[var(--primary-coral)] transition-colors py-3"
@@ -176,13 +177,13 @@ export const Header: React.FC = () => {
               {navigationItems.map((item) => (
                 <div key={item.id}>
                   {item.href ? (
-                    <a
-                      href={item.href}
+                    <Link
+                      to={item.href}
                       className="block py-2 text-base font-medium text-[var(--brand-black)]"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       {item.label}
-                    </a>
+                    </Link>
                   ) : (
                     <>
                       <button
@@ -196,14 +197,14 @@ export const Header: React.FC = () => {
                       {activeDropdown === item.id && item.items && (
                         <div className="pl-4 space-y-2 mt-2">
                           {item.items.map((subItem) => (
-                            <a
+                            <Link
                               key={subItem.id}
-                              href="#collection"
+                              to={`/collection/${subItem.slug}`}
                               className="block py-1 text-sm text-muted-foreground hover:text-[var(--primary-coral)]"
                               onClick={() => setMobileMenuOpen(false)}
                             >
                               {subItem.name}
-                            </a>
+                            </Link>
                           ))}
                         </div>
                       )}

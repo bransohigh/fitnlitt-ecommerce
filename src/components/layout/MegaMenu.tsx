@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Collection, products } from '@/data/products';
 import { ArrowRight, TrendingUp, Tag } from 'lucide-react';
 
@@ -27,18 +28,18 @@ export const MegaMenu: React.FC<MegaMenuProps> = ({ collections, onClose }) => {
               <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
                 Koleksiyonlar
               </h3>
-              <a 
-                href="#collection" 
+              <Link 
+                to="/collection" 
                 className="text-xs text-[var(--primary-coral)] hover:underline flex items-center gap-1"
               >
                 Tümünü Gör <ArrowRight className="w-3 h-3" />
-              </a>
+              </Link>
             </div>
             <div className="grid grid-cols-2 gap-4">
               {collections.map((collection) => (
-                <a
+                <Link
                   key={collection.id}
-                  href={`#collection/${collection.slug}`}
+                  to={`/collection/${collection.slug}`}
                   className="group flex items-center gap-3 p-3 rounded-xl hover:bg-black/5 transition-colors"
                   onClick={onClose}
                 >
@@ -46,7 +47,7 @@ export const MegaMenu: React.FC<MegaMenuProps> = ({ collections, onClose }) => {
                     <img
                       src={collection.image}
                       alt={collection.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
                     />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -57,7 +58,7 @@ export const MegaMenu: React.FC<MegaMenuProps> = ({ collections, onClose }) => {
                       {collection.description}
                     </p>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -70,8 +71,8 @@ export const MegaMenu: React.FC<MegaMenuProps> = ({ collections, onClose }) => {
                 Öne Çıkan
               </h3>
             </div>
-            <a 
-              href={`#collection/${featuredCollection.slug}`}
+            <Link 
+              to={`/collection/${featuredCollection.slug}`}
               className="group block relative rounded-2xl overflow-hidden aspect-[3/4] bg-gradient-to-br from-[var(--primary-peach)] to-[var(--primary-coral)]"
               onClick={onClose}
             >
@@ -89,7 +90,7 @@ export const MegaMenu: React.FC<MegaMenuProps> = ({ collections, onClose }) => {
                   Keşfet <ArrowRight className="w-3 h-3" />
                 </span>
               </div>
-            </a>
+            </Link>
           </div>
 
           {/* Best Sellers - 2 cols */}
@@ -102,9 +103,9 @@ export const MegaMenu: React.FC<MegaMenuProps> = ({ collections, onClose }) => {
             </div>
             <div className="space-y-3">
               {bestSellers.map((product) => (
-                <a
+                <Link
                   key={product.id}
-                  href="#product"
+                  to={`/product/${product.slug}`}
                   className="group flex gap-3 p-2 rounded-lg hover:bg-black/5 transition-colors"
                   onClick={onClose}
                 >
@@ -112,7 +113,7 @@ export const MegaMenu: React.FC<MegaMenuProps> = ({ collections, onClose }) => {
                     <img
                       src={product.images[0]}
                       alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
                     />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -130,7 +131,7 @@ export const MegaMenu: React.FC<MegaMenuProps> = ({ collections, onClose }) => {
                       )}
                     </div>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           </div>

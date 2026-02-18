@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { ChevronRight, Star, Minus, Plus, Heart, Shield, Truck, RotateCcw, Headphones, Ruler } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { ChevronRight, Star, Minus, Plus, Heart, Shield, Truck, RotateCcw, Headphones, Ruler, Loader2 } from 'lucide-react';
 import { products, Product } from '@/data/products';
+import { fetchProduct } from '@/lib/api-client';
 import { ProductCard } from '@/components/product/ProductCard';
 import { QuickViewModal } from '@/components/product/QuickViewModal';
 import { SizeGuideModal } from '@/components/product/SizeGuideModal';
@@ -12,16 +14,112 @@ import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/hooks/useWishlist';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const ProductDetail: React.FC = () => {
-  const product = products[0]; // Demo: using first product
+  const { slug: productSlug } = useParams<{ slug: string }>();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState(product.colors[0].name);
+  const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!productSlug) {
+        // Fallback to first product if no slug provided
+        const fallbackProduct = products[0];
+        setProduct(fallbackProduct);
+        setSelectedColor(fallbackProduct.colors[0].name);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError('');
+        
+        // First try to find in mock data
+        const mockProduct = products.find(p => p.slug === productSlug);
+        if (mockProduct) {
+          setProduct(mockProduct);
+          setSelectedColor(mockProduct.colors[0].name);
+          setLoading(false);
+          return;
+        }
+
+        // Try API if not in mock data
+        const { product: apiProduct } = await fetchProduct(productSlug);
+        
+        // Convert API product to Product type for compatibility
+        const convertedProduct: Product = {
+          id: apiProduct.id,
+          slug: apiProduct.slug,
+          name: apiProduct.title,
+          description: apiProduct.description || '',
+          price: apiProduct.price,
+          compareAtPrice: apiProduct.compare_at || undefined,
+          images: apiProduct.images?.map(img => img.url) || [apiProduct.primaryImage?.url || ''],
+          colors: apiProduct.variantsSummary.colors.map(color => ({
+            name: color,
+            hex: '#000000', // Default
+            image: apiProduct.primaryImage?.url || '',
+          })),
+          sizes: apiProduct.variantsSummary.sizes,
+          rating: 4.5,
+          reviewCount: 0,
+          badge: apiProduct.badges.isNew ? 'Yeni' : apiProduct.badges.isSale ? 'İndirim' : undefined,
+          fabric: '',
+          care: '',
+          category: '',
+        };
+
+        setProduct(convertedProduct);
+        setSelectedColor(convertedProduct.colors[0]?.name || '');
+      } catch (err: any) {
+        console.error('Error loading product:', err);
+        setError('Ürün yüklenirken bir hata oluştu. Mock data kullanılıyor.');
+        
+        // Fallback to first product
+        const fallbackProduct = products[0];
+        setProduct(fallbackProduct);
+        setSelectedColor(fallbackProduct.colors[0].name);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [productSlug]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-400" />
+          <p className="text-gray-600">Ürün yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <Alert variant="destructive">
+          <AlertDescription>Ürün bulunamadı.</AlertDescription>
+        </Alert>
+        <Button onClick={() => window.location.href = '/'} className="mt-4">
+          Ana Sayfaya Dön
+        </Button>
+      </div>
+    );
+  }
 
   const relatedProducts = products.slice(1, 5);
   const isWishlisted = isInWishlist(product.id);
@@ -60,13 +158,13 @@ export const ProductDetail: React.FC = () => {
       {/* Breadcrumb */}
       <div className="container-custom py-6">
         <div className="flex items-center gap-2 text-sm text-gray-600">
-          <a href="#home" className="hover:text-[var(--brand-black)]">Ana Sayfa</a>
+          <Link to="/" className="hover:text-[var(--brand-black)]">Ana Sayfa</Link>
           <ChevronRight className="w-4 h-4" />
-          <a href="#collection" className="hover:text-[var(--brand-black)]">Koleksiyonlar</a>
+          <Link to="/collection" className="hover:text-[var(--brand-black)]">Koleksiyonlar</Link>
           <ChevronRight className="w-4 h-4" />
-          <a href="#collection" className="hover:text-[var(--brand-black)]">
+          <Link to="/collection" className="hover:text-[var(--brand-black)]">
             {product.category}
-          </a>
+          </Link>
           <ChevronRight className="w-4 h-4" />
           <span className="text-[var(--brand-black)] font-medium">{product.name}</span>
         </div>

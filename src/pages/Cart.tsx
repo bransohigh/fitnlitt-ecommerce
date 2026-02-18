@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Trash2, ShoppingBag, Shield, Plus, Minus } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
@@ -34,7 +35,9 @@ export const Cart: React.FC = () => {
             size="lg"
             className="bg-[var(--primary-coral)] hover:bg-[var(--primary-peach)] text-[var(--brand-black)]"
           >
-            <a href="#collection">Alışverişe Başla</a>
+            <Link to="/collection">
+              Alışverişe Başla
+            </Link>
           </Button>
         </div>
       </div>
@@ -110,12 +113,12 @@ export const Cart: React.FC = () => {
               </div>
             ))}
 
-            <a
-              href="/collections"
+            <Link
+              to="/"
               className="inline-flex items-center text-sm text-[var(--primary-coral)] hover:text-[var(--primary-peach)] transition-colors"
             >
               ← Alışverişe Devam Et
-            </a>
+            </Link>
           </div>
 
           {/* Right Column - Order Summary */}
@@ -179,12 +182,9 @@ export const Cart: React.FC = () => {
               </div>
 
               {/* Checkout Button */}
-              <Button
-                asChild
-                className="w-full bg-[var(--brand-black)] hover:bg-[var(--brand-black)]/90 text-white py-6 text-lg"
-              >
-                <a href="/checkout">Ödemeye Geç</a>
-              </Button>
+              <Link to="/checkout" className="w-full bg-[var(--brand-black)] hover:bg-[var(--brand-black)]/90 text-white py-4 text-lg rounded-md flex items-center justify-center font-medium">
+                Ödemeye Geç
+              </Link>
 
               {/* Trust Badge */}
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
