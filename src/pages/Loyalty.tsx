@@ -2,10 +2,11 @@ import React from 'react';
 import { Gift, ShoppingBag, Award, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/product/ProductCard';
-import { products } from '@/data/products';
+import { useAppData } from '@/context/AppDataContext';
 import { motion } from 'framer-motion';
 
 export const Loyalty: React.FC = () => {
+  const { featuredProducts } = useAppData();
   const currentPoints = 1250; // Demo: logged in user points
   const isLoggedIn = true; // Demo state
 
@@ -160,7 +161,7 @@ export const Loyalty: React.FC = () => {
         <div className="container-custom">
           <h2 className="text-center mb-12">Puan Kazanmaya Başla</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {products.slice(0, 4).map((product) => (
+            {featuredProducts.slice(0, 4).map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

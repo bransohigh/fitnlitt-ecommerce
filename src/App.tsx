@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CartProvider } from '@/context/CartContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { AppDataProvider } from '@/context/AppDataContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { AnnouncementBar } from '@/components/layout/AnnouncementBar';
@@ -125,7 +126,9 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <AppContent />
+          <AppDataProvider>
+            <AppContent />
+          </AppDataProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

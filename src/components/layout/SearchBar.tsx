@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
-import { collections } from '@/data/products';
+import { useAppData } from '@/context/AppDataContext';
 
 export const SearchBar: React.FC = () => {
+  const { collections } = useAppData();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 

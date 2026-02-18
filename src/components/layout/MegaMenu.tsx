@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Collection, products } from '@/data/products';
+import { Collection } from '@/data/products';
+import { useAppData } from '@/context/AppDataContext';
 import { ArrowRight, TrendingUp, Tag } from 'lucide-react';
 
 interface MegaMenuProps {
@@ -10,7 +11,8 @@ interface MegaMenuProps {
 
 export const MegaMenu: React.FC<MegaMenuProps> = ({ collections, onClose }) => {
   const featuredCollection = collections[0];
-  const bestSellers = products.filter(p => p.badge === 'Çok Satan' || p.rating >= 4.8).slice(0, 3);
+  const { featuredProducts } = useAppData();
+  const bestSellers = featuredProducts.slice(0, 3);
 
   return (
     <div className="w-full bg-white border-b border-gray-100 shadow-2xl">

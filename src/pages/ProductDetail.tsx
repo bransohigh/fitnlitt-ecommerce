@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronRight, Star, Minus, Plus, Heart, Shield, Truck, RotateCcw, Headphones, Ruler, Loader2 } from 'lucide-react';
-import { products, Product } from '@/data/products';
+import { Product } from '@/data/products';
 import { fetchProduct } from '@/lib/api-client';
+import { useAppData } from '@/context/AppDataContext';
 import { ProductCard } from '@/components/product/ProductCard';
 import { QuickViewModal } from '@/components/product/QuickViewModal';
 import { SizeGuideModal } from '@/components/product/SizeGuideModal';
@@ -28,35 +29,23 @@ export const ProductDetail: React.FC = () => {
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { featuredProducts } = useAppData();
 
   useEffect(() => {
     const loadProduct = async () => {
       if (!productSlug) {
-        // Fallback to first product if no slug provided
-        const fallbackProduct = products[0];
-        setProduct(fallbackProduct);
-        setSelectedColor(fallbackProduct.colors[0].name);
+        setError('Ürün bulunamadı.');
         setLoading(false);
         return;
-      }
+      };
 
       try {
         setLoading(true);
         setError('');
-        
-        // First try to find in mock data
-        const mockProduct = products.find(p => p.slug === productSlug);
-        if (mockProduct) {
-          setProduct(mockProduct);
-          setSelectedColor(mockProduct.colors[0].name);
-          setLoading(false);
-          return;
-        }
 
-        // Try API if not in mock data
+        // Fetch from API
         const { product: apiProduct } = await fetchProduct(productSlug);
-        
-        // Convert API product to Product type for compatibility
+
         const convertedProduct: Product = {
           id: apiProduct.id,
           slug: apiProduct.slug,
@@ -83,12 +72,7 @@ export const ProductDetail: React.FC = () => {
         setSelectedColor(convertedProduct.colors[0]?.name || '');
       } catch (err: any) {
         console.error('Error loading product:', err);
-        setError('Ürün yüklenirken bir hata oluştu. Mock data kullanılıyor.');
-        
-        // Fallback to first product
-        const fallbackProduct = products[0];
-        setProduct(fallbackProduct);
-        setSelectedColor(fallbackProduct.colors[0].name);
+        setError('Ürün yüklenirken bir hata oluştu.');
       } finally {
         setLoading(false);
       }
@@ -121,7 +105,7 @@ export const ProductDetail: React.FC = () => {
     );
   }
 
-  const relatedProducts = products.slice(1, 5);
+  const relatedProducts = featuredProducts.filter(p => p.slug !== productSlug).slice(0, 4);
   const isWishlisted = isInWishlist(product.id);
   
   const selectedColorObj = product.colors.find(c => c.name === selectedColor) || product.colors[0];

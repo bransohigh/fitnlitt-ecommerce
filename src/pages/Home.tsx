@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/product/ProductCard';
 import { QuickViewModal } from '@/components/product/QuickViewModal';
@@ -8,7 +9,8 @@ import { StoryBlock } from '@/components/layout/StoryBlock';
 import { TrustBlocks } from '@/components/layout/TrustBlocks';
 import { InstagramGallery } from '@/components/layout/InstagramGallery';
 import { TrainingPackages } from '@/components/layout/TrainingPackages';
-import { products, collections, Product } from '@/data/products';
+import { Product } from '@/data/products';
+import { useAppData } from '@/context/AppDataContext';
 import { motion } from 'framer-motion';
 import {
   Carousel,
@@ -19,14 +21,16 @@ import {
 } from '@/components/ui/carousel';
 
 export const Home: React.FC = () => {
-  const [heroVariant] = useState<'editorial' | 'collection'>('editorial');
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const { collections, featuredProducts } = useAppData();
 
-  // Ana koleksiyonlar (ilk 5)
   const mainCollections = collections.slice(0, 5);
-  
-  // Best sellers
-  const bestsellerProducts = products.filter((p) => p.badge === 'Çok Satan' || p.rating >= 4.7).slice(0, 8);
+  const heroProducts    = featuredProducts.slice(0, 4);
+  const bestSellers     = featuredProducts.slice(0, 8);
+  // StoryBlock hotspot products (safe access)
+  const hs1 = featuredProducts[2];
+  const hs2 = featuredProducts[1];
+  const hs3 = featuredProducts[3];
 
   const handleOpenQuickView = (product: Product) => {
     setQuickViewProduct(product);
@@ -95,7 +99,7 @@ export const Home: React.FC = () => {
                 className="w-full"
               >
                 <CarouselContent className="-ml-4">
-                  {bestsellerProducts.slice(0, 4).map((product) => (
+                  {heroProducts.map((product) => (
                     <CarouselItem key={product.id} className="pl-4 basis-4/5 sm:basis-3/5 lg:basis-full">
                       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden group">
                         <img
@@ -212,7 +216,7 @@ export const Home: React.FC = () => {
             className="w-full"
           >
             <CarouselContent className="-ml-4">
-              {bestsellerProducts.map((product) => (
+              {bestSellers.map((product) => (
                 <CarouselItem key={product.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
                   <ProductCard product={product} onQuickView={handleOpenQuickView} />
                 </CarouselItem>
@@ -234,26 +238,26 @@ export const Home: React.FC = () => {
             imagePosition="left"
             ctaText="She Moves Koleksiyonu"
             ctaLink="/collection/she-moves"
-            hotspots={[
+            hotspots={hs1 && hs2 ? [
               {
                 id: 'crop-top',
                 x: 50,
                 y: 35,
-                productName: products[2].name,
-                productPrice: products[2].price,
-                productImage: products[2].images[0],
-                productLink: `/product/${products[2].slug}`
+                productName: hs1.name,
+                productPrice: hs1.price,
+                productImage: hs1.images[0],
+                productLink: `/product/${hs1.slug}`
               },
               {
                 id: 'leggings',
                 x: 50,
                 y: 65,
-                productName: products[1].name,
-                productPrice: products[1].price,
-                productImage: products[1].images[0],
-                productLink: `/product/${products[1].slug}`
+                productName: hs2.name,
+                productPrice: hs2.price,
+                productImage: hs2.images[0],
+                productLink: `/product/${hs2.slug}`
               }
-            ]}
+            ] : []}
           />
         </div>
       </section>
@@ -268,17 +272,17 @@ export const Home: React.FC = () => {
             imagePosition="right"
             ctaText="2nd SKN Koleksiyonu"
             ctaLink="/collection/2nd-skn"
-            hotspots={[
+            hotspots={hs3 ? [
               {
                 id: 'sports-bra',
                 x: 50,
                 y: 40,
-                productName: products[3].name,
-                productPrice: products[3].price,
-                productImage: products[3].images[0],
-                productLink: `/product/${products[3].slug}`
+                productName: hs3.name,
+                productPrice: hs3.price,
+                productImage: hs3.images[0],
+                productLink: `/product/${hs3.slug}`
               }
-            ]}
+            ] : []}
           />
         </div>
       </section>

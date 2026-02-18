@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, X, Heart } from 'lucide-react';
-import { collections } from '@/data/products';
 import { useCart } from '@/context/CartContext';
+import { useAppData } from '@/context/AppDataContext';
 import { TopBar } from './TopBar';
 import { SearchBox } from './SearchBox';
 import { MegaMenu } from './MegaMenu';
@@ -13,6 +13,7 @@ export const Header: React.FC = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const { totalItems } = useCart();
+  const { collections } = useAppData();
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = (itemId: string) => {
