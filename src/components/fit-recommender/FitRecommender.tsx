@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { X, ChevronRight, Ruler, ArrowLeft, Sparkles, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { fetchProducts, APIProduct } from '@/lib/api-client';
@@ -105,6 +105,18 @@ export function FitRecommender() {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [showPdpBanner, setShowPdpBanner] = useState(false);
+
+  const location = useLocation();
+  const isProductPage = location.pathname.startsWith('/product/');
+
+  // 30s PDP banner — shows once per product page visit
+  useEffect(() => {
+    if (!isProductPage || localStorage.getItem(LS_DISMISSED) === '1') return;
+    setShowPdpBanner(false);
+    const t = setTimeout(() => setShowPdpBanner(true), 30000);
+    return () => clearTimeout(t);
+  }, [location.pathname, isProductPage]);
 
   // Auto-show tooltip after 3 s (once, unless dismissed)
   useEffect(() => {
@@ -116,6 +128,7 @@ export function FitRecommender() {
 
   function openWizard() {
     setShowTooltip(false);
+    setShowPdpBanner(false);
     setStep(0);
     setAnswers({ height: null, bodyType: null, goal: null });
     setResult(null);
@@ -171,6 +184,21 @@ export function FitRecommender() {
     <>
       {/* ── Floating button ──────────────────────────────────────────────── */}
       <div className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-2">
+        {/* PDP 30s banner */}
+        {showPdpBanner && !open && (
+          <button
+            onClick={openWizard}
+            className="relative group text-left bg-white border border-gray-200 rounded-2xl shadow-2xl px-4 py-3 max-w-[200px] animate-in fade-in slide-in-from-bottom-3 duration-400 hover:border-[var(--primary-coral)] transition-colors"
+          >
+            <p className="text-xs font-semibold text-[var(--brand-black)] leading-snug">
+              Kararsız kaldın galiba 🤔
+            </p>
+            <p className="text-xs text-[var(--primary-coral)] font-medium mt-0.5 group-hover:underline">
+              Sana yardımcı olayım mı?
+            </p>
+            <div className="absolute -bottom-1.5 left-5 w-3 h-3 bg-white border-b border-r border-gray-200 rotate-45" />
+          </button>
+        )}
         {/* Tooltip */}
         {showTooltip && !open && (
           <div className="bg-[var(--brand-black)] text-white text-xs font-medium rounded-xl px-4 py-2.5 shadow-xl max-w-[180px] leading-snug animate-in fade-in slide-in-from-bottom-2 duration-300">
