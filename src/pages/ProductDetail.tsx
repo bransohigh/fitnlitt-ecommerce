@@ -12,6 +12,7 @@ import { TrustBand } from '@/components/product/TrustBand';
 import { ProductGallery } from '@/components/product/ProductGallery';
 import { SizeSelector, ColorSelector } from '@/components/product/VariantSelector';
 import { ProductDetails } from '@/components/product/ProductDetails';
+import { FeelIndicator } from '@/components/product/FeelIndicator';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -214,6 +215,9 @@ export const ProductDetail: React.FC = () => {
                 </>
               )}
             </div>
+
+            {/* Feel & Compression Indicator */}
+            <FeelIndicator slug={product.slug} />
 
             {/* Installment Info */}
             <div className="bg-[var(--brand-cream)] rounded-lg p-4">
