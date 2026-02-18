@@ -13,6 +13,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, Loader2, TrendingUp } from 'lucide-react';
+import { supabaseAuth } from '@/lib/supabase-auth';
 
 interface Suggestion {
   slug: string;
@@ -36,39 +37,63 @@ export const SearchBox: React.FC = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ─── Fetch helpers ───────────────────────────────────────────────────────
+  // ─── Fetch helpers (direct Supabase — works on any static hosting) ────────
   const fetchTop = useCallback(async () => {
-    abortRef.current?.abort();
-    abortRef.current = new AbortController();
     setLoading(true);
     try {
-      const res = await fetch('/api/search/top', { signal: abortRef.current.signal });
-      const data = await res.json();
-      setResults((data.data ?? data).slice(0, MAX_RESULTS));
+      const { data, error } = await supabaseAuth
+        .from('products')
+        .select('slug, title, price, currency, product_images(url)')
+        .eq('is_active', true)
+        .order('is_featured', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(MAX_RESULTS);
+
+      if (error) throw error;
+      setResults(
+        (data ?? []).map((p: any) => ({
+          slug: p.slug,
+          title: p.title,
+          price: parseFloat(p.price),
+          currency: p.currency,
+          primaryImageUrl: p.product_images?.[0]?.url ?? null,
+        }))
+      );
       setIsTopResults(true);
-    } catch (e: any) {
-      if (e.name !== 'AbortError') setResults([]);
+    } catch {
+      setResults([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
   const fetchSuggest = useCallback(async (q: string) => {
-    abortRef.current?.abort();
-    abortRef.current = new AbortController();
     setLoading(true);
     try {
-      const res = await fetch(`/api/search/suggest?q=${encodeURIComponent(q)}&limit=${MAX_RESULTS}`, {
-        signal: abortRef.current.signal,
-      });
-      const data = await res.json();
-      setResults((data.data ?? data).slice(0, MAX_RESULTS));
+      const { data, error } = await supabaseAuth
+        .from('products')
+        .select('slug, title, price, currency, product_images(url)')
+        .eq('is_active', true)
+        .ilike('title', `%${q}%`)
+        .order('is_featured', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(MAX_RESULTS);
+
+      if (error) throw error;
+      setResults(
+        (data ?? []).map((p: any) => ({
+          slug: p.slug,
+          title: p.title,
+          price: parseFloat(p.price),
+          currency: p.currency,
+          primaryImageUrl: p.product_images?.[0]?.url ?? null,
+        }))
+      );
       setIsTopResults(false);
-    } catch (e: any) {
-      if (e.name !== 'AbortError') setResults([]);
+    } catch {
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -151,7 +176,7 @@ export const SearchBox: React.FC = () => {
   // ─── Cleanup on unmount ───────────────────────────────────────────────────
   useEffect(() => {
     return () => {
-      abortRef.current?.abort();
+
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
