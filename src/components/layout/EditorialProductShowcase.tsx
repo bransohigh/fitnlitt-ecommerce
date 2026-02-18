@@ -45,7 +45,7 @@ function ShowcaseCard({ product }: { product: ShowcaseProduct }) {
   return (
     <Link
       to={`/product/${product.slug}`}
-      className="group block cursor-pointer flex-shrink-0 snap-start w-[200px] sm:w-[220px]"
+      className="group block cursor-pointer flex-shrink-0 snap-start w-[160px] sm:w-[190px] lg:w-[220px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -119,7 +119,7 @@ function ShowcaseCard({ product }: { product: ShowcaseProduct }) {
 // ─── Skeleton card ─────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="flex-shrink-0 snap-start w-[200px] sm:w-[220px]">
+    <div className="flex-shrink-0 snap-start w-[160px] sm:w-[190px] lg:w-[220px]">
       <Skeleton className="w-full aspect-[3/4] rounded-xl" />
       <div className="mt-3 space-y-2">
         <Skeleton className="h-3.5 w-3/4" />
@@ -185,7 +185,7 @@ export function EditorialProductShowcase({
   // ── Hero panel — rounded-xl to match card style ────────────────────────
   const heroPanel = (
     <div className="flex-shrink-0 w-full lg:w-[220px] xl:w-[240px]">
-      <div className="relative overflow-hidden rounded-xl aspect-[3/4] shadow-sm">
+      <div className="relative overflow-hidden rounded-xl aspect-[16/9] lg:aspect-[3/4] shadow-sm">
         <img
           src={imageSrc}
           alt={title}
@@ -199,7 +199,7 @@ export function EditorialProductShowcase({
           <h2 className="text-lg xl:text-xl font-bold leading-snug mb-2">
             {title}
           </h2>
-          <p className="text-xs text-white/75 mb-4 leading-relaxed hidden lg:block">
+          <p className="text-xs text-white/75 mb-3 leading-relaxed hidden lg:block">
             {subtitle}
           </p>
           <Button
@@ -216,10 +216,10 @@ export function EditorialProductShowcase({
 
   // ── Slider panel ────────────────────────────────────────────────────────
   const sliderPanel = (
-    <div className="relative flex-1 min-w-0">
+    <div className="relative flex-1 min-w-0 -mx-4 px-4 lg:mx-0 lg:px-0">
       <div
         ref={sliderRef}
-        className="flex gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 scrollbar-none"
+        className="flex gap-4 lg:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 scrollbar-none"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {loadingProducts
@@ -228,20 +228,20 @@ export function EditorialProductShowcase({
         }
       </div>
 
-      {/* Prev / Next arrows */}
+      {/* Prev / Next arrows — desktop only */}
       {!loadingProducts && products.length > 0 && (
         <>
           <button
             onClick={() => scrollSlider('left')}
             aria-label="Geri"
-            className="absolute -left-3 top-[42%] -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+            className="absolute -left-3 top-[42%] -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-md hidden lg:flex items-center justify-center hover:bg-gray-50 transition-colors"
           >
             <ChevronLeft className="w-4 h-4 text-gray-700" />
           </button>
           <button
             onClick={() => scrollSlider('right')}
             aria-label="İleri"
-            className="absolute -right-3 top-[42%] -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+            className="absolute -right-3 top-[42%] -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-md hidden lg:flex items-center justify-center hover:bg-gray-50 transition-colors"
           >
             <ChevronRight className="w-4 h-4 text-gray-700" />
           </button>
@@ -251,9 +251,9 @@ export function EditorialProductShowcase({
   );
 
   return (
-    <div className={`w-full ${bgClass} py-16 md:py-24`}>
+    <div className={`w-full overflow-x-hidden ${bgClass} py-12 md:py-24`}>
       <div className="container-custom">
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-5 lg:gap-8 items-start">
           {imagePosition === 'left' ? (
             <>{heroPanel}{sliderPanel}</>
           ) : (
