@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ShoppingCart, User, Menu, X } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Heart } from 'lucide-react';
 import { collections } from '@/data/products';
 import { useCart } from '@/context/CartContext';
+import { TopBar } from './TopBar';
+import { SearchBar } from './SearchBar';
+import { MegaMenu } from './MegaMenu';
 
 export const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -61,94 +64,52 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full">
+      {/* Top Utility Bar */}
+      <TopBar />
+
+      {/* Main Header */}
       <nav className="glass-effect border-b border-black/5">
         <div className="container-custom">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-16 lg:h-18">
             {/* Logo */}
-            <a href="#home" className="flex items-center space-x-2">
-              <span className="text-2xl font-semibold text-[var(--brand-black)]">
+            <a href="#home" className="flex items-center space-x-2 flex-shrink-0">
+              <span className="text-xl lg:text-2xl font-semibold text-[var(--brand-black)]">
                 Fitnlitt
               </span>
             </a>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-8">
-              {navigationItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="relative"
-                  onMouseEnter={() => item.items && handleMouseEnter(item.id)}
-                  onMouseLeave={() => item.items && handleMouseLeave()}
-                >
-                  {item.href ? (
-                    <a
-                      href={item.href}
-                      className="text-sm font-medium text-[var(--brand-black)] hover:text-[var(--primary-coral)] transition-colors"
-                    >
-                      {item.label}
-                    </a>
-                  ) : (
-                    <button
-                      className="text-sm font-medium text-[var(--brand-black)] hover:text-[var(--primary-coral)] transition-colors"
-                    >
-                      {item.label}
-                    </button>
-                  )}
-
-                  {/* Dropdown Menu */}
-                  {item.items && activeDropdown === item.id && (
-                    <div 
-                      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[700px] glass-effect rounded-xl border border-black/5 shadow-xl p-6"
-                      onMouseEnter={() => handleMouseEnter(item.id)}
-                      onMouseLeave={handleMouseLeave}
-                    >
-                      <div className="grid grid-cols-2 gap-6">
-                        {item.items.map((subItem) => (
-                          <a
-                            key={subItem.id}
-                            href="#collection"
-                            className="group flex items-center gap-4 p-3 rounded-lg hover:bg-black/5 transition-colors"
-                          >
-                            <div className="w-20 h-20 flex-shrink-0 overflow-hidden rounded-lg">
-                              <img
-                                src={subItem.image}
-                                alt={subItem.name}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="text-sm font-medium text-[var(--brand-black)] group-hover:text-[var(--primary-coral)] transition-colors">
-                                {subItem.name}
-                              </h4>
-                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                {subItem.description}
-                              </p>
-                            </div>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+            {/* Desktop Search Bar */}
+            <div className="hidden lg:block flex-1">
+              <SearchBar />
             </div>
 
             {/* Right Actions */}
-            <div className="flex items-center space-x-4">
-              <button className="p-2 hover:bg-black/5 rounded-full transition-colors">
+            <div className="flex items-center gap-1 lg:gap-2">
+              {/* Mobile Search */}
+              <button className="lg:hidden p-2 hover:bg-black/5 rounded-full transition-colors">
                 <Search className="w-5 h-5" />
               </button>
+
+              {/* Wishlist */}
+              <button 
+                className="hidden sm:block p-2 hover:bg-black/5 rounded-full transition-colors relative"
+                aria-label="Favoriler"
+              >
+                <Heart className="w-5 h-5" />
+              </button>
               
+              {/* Cart */}
               <a href="#cart" className="relative p-2 hover:bg-black/5 rounded-full transition-colors">
                 <ShoppingCart className="w-5 h-5" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[var(--primary-coral)] text-[var(--brand-black)] text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-[var(--primary-coral)] text-white text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
                     {totalItems}
                   </span>
                 )}
               </a>
               
-              <button className="p-2 hover:bg-black/5 rounded-full transition-colors">
+              {/* Account */}
+              <button className="hidden sm:block p-2 hover:bg-black/5 rounded-full transition-colors">
                 <User className="w-5 h-5" />
               </button>
 
@@ -159,6 +120,45 @@ export const Header: React.FC = () => {
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Navigation + Mega Menu */}
+        <div className="hidden lg:block border-t border-black/5">
+          <div className="container-custom">
+            <div className="flex items-center justify-center gap-8 h-12 relative">
+              {navigationItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="relative"
+                  onMouseEnter={() => item.items && handleMouseEnter(item.id)}
+                  onMouseLeave={() => item.items && handleMouseLeave()}
+                >
+                  {item.href ? (
+                    <a
+                      href={item.href}
+                      className="text-sm font-medium text-[var(--brand-black)] hover:text-[var(--primary-coral)] transition-colors py-3 inline-block"
+                    >
+                      {item.label}
+                    </a>
+                  ) : (
+                    <button
+                      className="text-sm font-medium text-[var(--brand-black)] hover:text-[var(--primary-coral)] transition-colors py-3"
+                    >
+                      {item.label}
+                    </button>
+                  )}
+
+                  {/* Mega Menu Trigger */}
+                  {item.items && activeDropdown === item.id && (
+                    <MegaMenu 
+                      collections={item.items} 
+                      onClose={() => setActiveDropdown(null)}
+                    />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
