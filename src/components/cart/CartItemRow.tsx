@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Minus, Plus, X } from 'lucide-react';
 import { Product } from '@/data/products';
 import { config } from '@/lib/config';
+import { formatPrice } from '@/lib/utils';
 
 interface CartItemRowProps {
   product: Product;
@@ -80,7 +81,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({
         {/* Price and Quantity */}
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-[var(--brand-black)]">
-            {itemTotal}₺
+            {formatPrice(itemTotal)}₺
           </span>
 
           {/* Quantity Stepper */}

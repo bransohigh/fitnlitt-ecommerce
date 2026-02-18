@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, ShoppingBag, Shield, Plus, Minus } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -101,7 +102,7 @@ export const Cart: React.FC = () => {
                 {/* Price & Remove */}
                 <div className="text-right space-y-2">
                   <p className="font-semibold text-[var(--brand-black)]">
-                    {item.product.price * item.quantity}₺
+                    {formatPrice(item.product.price * item.quantity)}₺
                   </p>
                   <button
                     onClick={() => removeFromCart(item.product.id)}
@@ -129,26 +130,26 @@ export const Cart: React.FC = () => {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Ara Toplam</span>
-                  <span className="font-medium">{subtotal}₺</span>
+                  <span className="font-medium">{formatPrice(subtotal)}₺</span>
                 </div>
 
                 {subtotal < shippingThreshold && (
                   <div className="text-xs text-muted-foreground bg-white p-3 rounded">
-                    Ücretsiz kargo için {shippingThreshold - subtotal}₺ daha alışveriş yapın!
+                    Üretsiz kargo için {formatPrice(shippingThreshold - subtotal)}₺ daha alışveriş yapın!
                   </div>
                 )}
 
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Kargo</span>
                   <span className={`font-medium ${shippingCost === 0 ? 'text-[var(--success-green)]' : ''}`}>
-                    {shippingCost === 0 ? 'Ücretsiz' : `${shippingCost}₺`}
+                    {shippingCost === 0 ? 'Ücretsiz' : `${formatPrice(shippingCost)}₺`}
                   </span>
                 </div>
 
                 {discountApplied && (
                   <div className="flex justify-between text-[var(--success-green)]">
                     <span>İndirim</span>
-                    <span className="font-medium">-{discountAmount}₺</span>
+                    <span className="font-medium">-{formatPrice(discountAmount)}₺</span>
                   </div>
                 )}
               </div>
@@ -178,7 +179,7 @@ export const Cart: React.FC = () => {
               {/* Total */}
               <div className="flex justify-between text-lg font-semibold pt-4 border-t">
                 <span>Toplam</span>
-                <span>{total}₺</span>
+                <span>{formatPrice(total)}₺</span>
               </div>
 
               {/* Checkout Button */}

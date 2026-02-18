@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { formatPrice } from '@/lib/utils';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -187,12 +188,12 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, open, o
             {/* Price */}
             <div className="flex items-center gap-3 pb-5 border-b">
               <span className="text-3xl font-bold text-[var(--brand-black)]">
-                {product.price}₺
+                {formatPrice(product.price)}₺
               </span>
               {hasDiscount && (
                 <>
                   <span className="text-xl text-muted-foreground line-through">
-                    {product.compareAtPrice}₺
+                    {formatPrice(product.compareAtPrice!)}₺
                   </span>
                   <span className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full">
                     %{discountPercent} İndirim

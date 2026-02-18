@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatPrice } from '@/lib/utils';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -117,7 +118,7 @@ export const Home: React.FC = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                           <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-                          <p className="text-2xl font-bold">{product.price} TL</p>
+                          <p className="text-2xl font-bold">{formatPrice(product.price)} TL</p>
                         </div>
                       </div>
                     </CarouselItem>

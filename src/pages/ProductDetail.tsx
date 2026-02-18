@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronRight, Star, Minus, Plus, Heart, Shield, Truck, RotateCcw, Headphones, Ruler, Loader2 } from 'lucide-react';
 import { Product } from '@/data/products';
+import { formatPrice } from '@/lib/utils';
 import { fetchProduct } from '@/lib/api-client';
 import { useAppData } from '@/context/AppDataContext';
 import { ProductCard } from '@/components/product/ProductCard';
@@ -201,11 +202,11 @@ export const ProductDetail: React.FC = () => {
 
             {/* Price */}
             <div className="flex items-baseline gap-3 py-4 border-y">
-              <span className="text-3xl font-bold text-gray-900">₺{product.price}</span>
+              <span className="text-3xl font-bold text-gray-900">₺{formatPrice(product.price)}</span>
               {hasDiscount && (
                 <>
                   <span className="text-xl text-gray-500 line-through">
-                    ₺{product.compareAtPrice}
+                    ₺{formatPrice(product.compareAtPrice!)}
                   </span>
                   <Badge variant="destructive" className="text-sm">
                     %{discountPercent} İndirim
@@ -364,9 +365,9 @@ export const ProductDetail: React.FC = () => {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg z-40">
         <div className="flex items-center gap-3">
           <div>
-            <p className="text-xl font-bold">₺{product.price}</p>
+            <p className="text-xl font-bold">₺{formatPrice(product.price)}</p>
             {hasDiscount && (
-              <p className="text-sm text-gray-500 line-through">₺{product.compareAtPrice}</p>
+              <p className="text-sm text-gray-500 line-through">₺{formatPrice(product.compareAtPrice!)}</p>
             )}
           </div>
           <Button

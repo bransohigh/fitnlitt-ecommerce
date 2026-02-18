@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, ChevronDown, Sliders } from 'lucide-react';
+import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -229,8 +230,8 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
               className="w-full"
             />
             <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>₺{filters.priceRange[0]}</span>
-              <span>₺{filters.priceRange[1]}</span>
+              <span>₺{formatPrice(filters.priceRange[0])}</span>
+              <span>₺{formatPrice(filters.priceRange[1])}</span>
             </div>
             {(priceMin > 0 || priceMax < 2000) && (
               <p className="text-xs text-gray-500">Mevcut aralık: ₺{priceMin} - ₺{priceMax}</p>

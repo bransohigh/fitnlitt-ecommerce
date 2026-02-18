@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Check, CreditCard, Lock } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -91,7 +92,7 @@ export const Checkout: React.FC = () => {
                         {item.selectedSize} | {item.selectedColor} | {item.quantity} adet
                       </p>
                       <p className="text-sm font-semibold mt-1">
-                        {item.product.price * item.quantity}₺
+                        {formatPrice(item.product.price * item.quantity)}₺
                       </p>
                     </div>
                   </div>
@@ -102,19 +103,19 @@ export const Checkout: React.FC = () => {
               <div className="space-y-3 text-sm border-t pt-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Ara Toplam</span>
-                  <span className="font-medium">{subtotal}₺</span>
+                  <span className="font-medium">{formatPrice(subtotal)}₺</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Kargo</span>
                   <span className={`font-medium ${shippingCost === 0 ? 'text-[var(--success-green)]' : ''}`}>
-                    {shippingCost === 0 ? 'Ücretsiz' : `${shippingCost}₺`}
+                    {shippingCost === 0 ? 'Ücretsiz' : `${formatPrice(shippingCost)}₺`}
                   </span>
                 </div>
               </div>
 
               <div className="flex justify-between text-lg font-semibold pt-4 border-t mt-4">
                 <span>Toplam</span>
-                <span>{total}₺</span>
+                <span>{formatPrice(total)}₺</span>
               </div>
 
               {/* Trust Badge */}

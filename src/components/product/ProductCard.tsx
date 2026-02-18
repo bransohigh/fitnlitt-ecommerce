@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Eye } from 'lucide-react';
 import { Product } from '@/data/products';
+import { formatPrice } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/hooks/useWishlist';
 import { ProductBadge } from './ProductBadge';
@@ -184,12 +185,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
         {/* Price */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-base font-bold text-[var(--brand-black)]">
-            {product.price}₺
+            {formatPrice(product.price)}₺
           </span>
           {hasDiscount && (
             <>
               <span className="text-sm text-muted-foreground line-through">
-                {product.compareAtPrice}₺
+                {formatPrice(product.compareAtPrice!)}₺
               </span>
               <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
                 %{discountPercent} İndirim

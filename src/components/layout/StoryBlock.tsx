@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
+import { formatPrice } from '@/lib/utils';
 
 interface Hotspot {
   id: string;
@@ -170,7 +171,7 @@ export const StoryBlock: React.FC<StoryBlockProps> = ({
                         {hotspot.productName}
                       </p>
                       <p className="text-base font-bold text-[var(--primary-coral)]">
-                        {hotspot.productPrice.toLocaleString('tr-TR')}₺
+                        {formatPrice(hotspot.productPrice)}₺
                       </p>
                       <p className="text-xs text-gray-400 mt-1">Görmek için tıkla →</p>
                     </div>
