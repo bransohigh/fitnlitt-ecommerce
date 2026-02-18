@@ -139,7 +139,21 @@ function stripHtml(html: string): string {
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)))
+    .replace(/&[a-z]+;/gi, '')
     .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Decode HTML entities in a plain title string (no tags expected, but WC sends &#8211; etc). */
+function decodeEntities(text: string): string {
+  return text
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)))
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#0*38;/g, '&')
+    .replace(/&[a-z]+;/gi, '')
     .trim();
 }
 
@@ -302,7 +316,7 @@ async function upsertCollection(
 ): Promise<string | null> {
   const row = {
     slug: cat.slug || slugify(cat.name),
-    title: cat.name,
+    title: decodeEntities(cat.name),
     description: stripHtml(cat.description ?? ''),
     hero_image: cat.image?.src ?? null,
   };
@@ -338,7 +352,7 @@ async function upsertProduct(wc: WCProduct, collectionId: string | null): Promis
 
   const row = {
     slug: wc.slug || slugify(wc.name),
-    title: wc.name,
+    title: decodeEntities(wc.name),
     description: stripHtml(wc.description || wc.short_description || ''),
     price,
     compare_at,
