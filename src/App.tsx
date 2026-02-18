@@ -15,6 +15,7 @@ import { About } from '@/pages/About';
 import { Contact } from '@/pages/Contact';
 import { Loyalty } from '@/pages/Loyalty';
 import { Account } from '@/pages/Account';
+import { FitRecommender } from '@/components/fit-recommender/FitRecommender';
 import { AdminLogin } from '@/pages/admin/AdminLogin';
 import { AdminDashboard } from '@/pages/admin/AdminDashboard';
 import { AdminProducts } from '@/pages/admin/AdminProducts';
@@ -45,6 +46,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
+      <FitRecommender />
     </>
   );
 }
