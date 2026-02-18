@@ -3,7 +3,7 @@
  * Compact left editorial hero + right horizontal product slider (4 cards in one row)
  */
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -45,7 +45,7 @@ function ShowcaseCard({ product }: { product: ShowcaseProduct }) {
   return (
     <Link
       to={`/product/${product.slug}`}
-      className="group block cursor-pointer flex-shrink-0 snap-start w-[160px] sm:w-[190px] lg:w-[220px]"
+      className="group block cursor-pointer flex-shrink-0 w-[160px] sm:w-[190px] lg:w-[220px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -119,7 +119,7 @@ function ShowcaseCard({ product }: { product: ShowcaseProduct }) {
 // ─── Skeleton card ─────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="flex-shrink-0 snap-start w-[160px] sm:w-[190px] lg:w-[220px]">
+    <div className="flex-shrink-0 w-[160px] sm:w-[190px] lg:w-[220px]">
       <Skeleton className="w-full aspect-[3/4] rounded-xl" />
       <div className="mt-3 space-y-2">
         <Skeleton className="h-3.5 w-3/4" />
@@ -149,26 +149,27 @@ export function EditorialProductShowcase({
   const scrollStart = useRef(0);
   const didDrag = useRef(false);
 
-  // Pointer-based drag-to-scroll (works on touch + mouse)
+  // Mouse drag-to-scroll (desktop). Touch devices use native overflow-x scroll — no interference.
   useEffect(() => {
     const el = sliderRef.current;
     if (!el) return;
 
     const onDown = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return; // let touch scroll natively
       isDragging.current = true;
       didDrag.current = false;
       dragStartX.current = e.clientX;
       scrollStart.current = el.scrollLeft;
-      el.setPointerCapture(e.pointerId);
       el.style.scrollBehavior = 'auto';
     };
     const onMove = (e: PointerEvent) => {
-      if (!isDragging.current) return;
+      if (!isDragging.current || e.pointerType !== 'mouse') return;
       const dx = dragStartX.current - e.clientX;
       if (Math.abs(dx) > 4) didDrag.current = true;
       el.scrollLeft = scrollStart.current + dx;
     };
-    const onUp = () => {
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return;
       isDragging.current = false;
       el.style.scrollBehavior = '';
     };
@@ -178,15 +179,13 @@ export function EditorialProductShowcase({
     };
 
     el.addEventListener('pointerdown', onDown);
-    el.addEventListener('pointermove', onMove);
-    el.addEventListener('pointerup', onUp);
-    el.addEventListener('pointercancel', onUp);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
     el.addEventListener('click', onClick, true);
     return () => {
       el.removeEventListener('pointerdown', onDown);
-      el.removeEventListener('pointermove', onMove);
-      el.removeEventListener('pointerup', onUp);
-      el.removeEventListener('pointercancel', onUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
       el.removeEventListener('click', onClick, true);
     };
   }, []);
@@ -265,8 +264,8 @@ export function EditorialProductShowcase({
     <div className="relative flex-1 min-w-0 -mx-4 px-4 lg:mx-0 lg:px-0">
       <div
         ref={sliderRef}
-        className="flex gap-4 lg:gap-5 overflow-x-auto pb-2 scrollbar-none select-none cursor-grab active:cursor-grabbing"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overscrollBehaviorX: 'contain' }}
+        className="flex gap-4 lg:gap-5 overflow-x-auto pb-2 scrollbar-none"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overscrollBehaviorX: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
         {loadingProducts
           ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
