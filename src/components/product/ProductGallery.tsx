@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, ZoomIn, Play } from 'lucide-react';
-import { FabricFeel } from './FabricFeel';
 
 interface ProductGalleryProps {
   images: string[];
@@ -28,7 +27,6 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({
     <div className="space-y-4">
       {/* Main Image */}
       <div className="relative aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden group">
-        <FabricFeel disabled={isZoomed}>
           <img
             src={images[activeIndex]}
             alt={`${productName} - ${activeIndex + 1}`}
@@ -37,7 +35,6 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({
             }`}
             onClick={() => setIsZoomed(!isZoomed)}
           />
-        </FabricFeel>
 
         {/* Navigation Arrows */}
         <button
