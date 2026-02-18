@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/product/ProductCard';
 import { QuickViewModal } from '@/components/product/QuickViewModal';
 import { CollectionCard } from '@/components/layout/CollectionCard';
-import { StoryBlock } from '@/components/layout/StoryBlock';
+import { EditorialProductShowcase } from '@/components/layout/EditorialProductShowcase';
 import { TrustBlocks } from '@/components/layout/TrustBlocks';
 import { InstagramGallery } from '@/components/layout/InstagramGallery';
 import { TrainingPackages } from '@/components/layout/TrainingPackages';
@@ -29,10 +29,6 @@ export const Home: React.FC = () => {
   const mainCollections = collections.slice(0, 5);
   const heroProducts    = featuredProducts.slice(0, 4);
   const bestSellers     = featuredProducts.slice(0, 8);
-  // StoryBlock hotspot products (safe access)
-  const hs1 = featuredProducts[2];
-  const hs2 = featuredProducts[1];
-  const hs3 = featuredProducts[3];
 
   const handleOpenQuickView = (product: Product) => {
     setQuickViewProduct(product);
@@ -242,64 +238,29 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Story Block 1 - She Moves */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="container-custom">
-          <StoryBlock
-            title="Hareket Eden Kadın"
-            description="Antrenman salonunda, sokakta, hayatta... Her yerde kendini özgürce ifade et. Güç ve zarafet bir arada. Sınırları zorla, potansiyelini keşfet."
-            image="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200"
-            imagePosition="left"
-            ctaText="She Moves Koleksiyonu"
-            ctaLink="/collection/she-moves"
-            hotspots={hs1 && hs2 ? [
-              {
-                id: 'crop-top',
-                x: 50,
-                y: 35,
-                productName: hs1.name,
-                productPrice: hs1.price,
-                productImage: hs1.images[0],
-                productLink: `/product/${hs1.slug}`
-              },
-              {
-                id: 'leggings',
-                x: 50,
-                y: 65,
-                productName: hs2.name,
-                productPrice: hs2.price,
-                productImage: hs2.images[0],
-                productLink: `/product/${hs2.slug}`
-              }
-            ] : []}
-          />
-        </div>
-      </section>
+      {/* Editorial Showcase 1 - Hareket Eden Kadın / She Moves */}
+      <EditorialProductShowcase
+        title="Hareket Eden Kadın"
+        subtitle="Antrenman salonunda, sokakta, hayatta... Her yerde kendini özgürce ifade et. Güç ve zarafet bir arada."
+        ctaLabel="She Moves Koleksiyonu"
+        ctaHref="/collection/she-moves"
+        imageSrc="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200"
+        collectionSlug="she-moves"
+        bgColor="white"
+        imagePosition="left"
+      />
 
-      {/* Story Block 2 - 2nd SKN */}
-      <section className="py-16 md:py-24 bg-[var(--brand-cream)]">
-        <div className="container-custom">
-          <StoryBlock
-            title="İkinci Ten"
-            description="Kumaşlarımız bedeninle bir bütün. Konfor ve performans aynı anda. Hareket ettiğinde seninle hareket eder, nefes alır. İkinci tenin gibi hissedersin."
-            image="https://images.unsplash.com/photo-1556906918-3b0c628c69e3?w=1200"
-            imagePosition="right"
-            ctaText="2nd SKN Koleksiyonu"
-            ctaLink="/collection/2nd-skn"
-            hotspots={hs3 ? [
-              {
-                id: 'sports-bra',
-                x: 50,
-                y: 40,
-                productName: hs3.name,
-                productPrice: hs3.price,
-                productImage: hs3.images[0],
-                productLink: `/product/${hs3.slug}`
-              }
-            ] : []}
-          />
-        </div>
-      </section>
+      {/* Editorial Showcase 2 - İkinci Ten / 2nd SKN */}
+      <EditorialProductShowcase
+        title="İkinci Ten"
+        subtitle="Kumaşlarımız bedeninle bir bütün. Konfor ve performans aynı anda. Hareket ettiğinde seninle hareket eder."
+        ctaLabel="2nd SKN Koleksiyonu"
+        ctaHref="/collection/2nd-skn"
+        imageSrc="https://images.unsplash.com/photo-1556906918-3b0c628c69e3?w=1200"
+        collectionSlug="2nd-skn"
+        bgColor="cream"
+        imagePosition="right"
+      />
 
       {/* Training Packages */}
       <TrainingPackages />
