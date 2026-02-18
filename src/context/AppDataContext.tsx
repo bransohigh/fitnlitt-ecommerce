@@ -88,6 +88,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       fetchProducts({ limit: 12, sort: 'newest' }),
     ])
       .then(([colRes, prodRes]) => {
+        console.log('[AppData] collections:', colRes.collections.length, 'products:', prodRes.items.length);
         setApiCollections(colRes.collections);
         setCollections(colRes.collections.map(adaptCollection));
         setFeaturedProducts(prodRes.items.map(adaptProduct));

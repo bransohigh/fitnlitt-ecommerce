@@ -9,6 +9,7 @@ import { StoryBlock } from '@/components/layout/StoryBlock';
 import { TrustBlocks } from '@/components/layout/TrustBlocks';
 import { InstagramGallery } from '@/components/layout/InstagramGallery';
 import { TrainingPackages } from '@/components/layout/TrainingPackages';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Product } from '@/data/products';
 import { useAppData } from '@/context/AppDataContext';
 import { motion } from 'framer-motion';
@@ -22,7 +23,7 @@ import {
 
 export const Home: React.FC = () => {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
-  const { collections, featuredProducts } = useAppData();
+  const { collections, featuredProducts, loading } = useAppData();
 
   const mainCollections = collections.slice(0, 5);
   const heroProducts    = featuredProducts.slice(0, 4);
@@ -99,7 +100,13 @@ export const Home: React.FC = () => {
                 className="w-full"
               >
                 <CarouselContent className="-ml-4">
-                  {heroProducts.map((product) => (
+                  {loading
+                    ? Array.from({ length: 2 }).map((_, i) => (
+                        <CarouselItem key={i} className="pl-4 basis-4/5 sm:basis-3/5 lg:basis-full">
+                          <Skeleton className="w-full aspect-[3/4] rounded-2xl" />
+                        </CarouselItem>
+                      ))
+                    : heroProducts.map((product) => (
                     <CarouselItem key={product.id} className="pl-4 basis-4/5 sm:basis-3/5 lg:basis-full">
                       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden group">
                         <img
@@ -216,7 +223,13 @@ export const Home: React.FC = () => {
             className="w-full"
           >
             <CarouselContent className="-ml-4">
-              {bestSellers.map((product) => (
+              {loading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <CarouselItem key={i} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                      <Skeleton className="w-full aspect-[3/4] rounded-xl" />
+                    </CarouselItem>
+                  ))
+                : bestSellers.map((product) => (
                 <CarouselItem key={product.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
                   <ProductCard product={product} onQuickView={handleOpenQuickView} />
                 </CarouselItem>
