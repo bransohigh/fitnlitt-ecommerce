@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { ChevronRight, Star, Minus, Plus, Heart, Shield, Truck, RotateCcw, Headphones } from 'lucide-react';
-import { products } from '@/data/products';
+import { ChevronRight, Star, Minus, Plus, Heart, Shield, Truck, RotateCcw, Headphones, Ruler } from 'lucide-react';
+import { products, Product } from '@/data/products';
 import { ProductCard } from '@/components/product/ProductCard';
+import { QuickViewModal } from '@/components/product/QuickViewModal';
+import { SizeGuideModal } from '@/components/product/SizeGuideModal';
+import { TrustBand } from '@/components/product/TrustBand';
 import { ProductGallery } from '@/components/product/ProductGallery';
 import { SizeSelector, ColorSelector } from '@/components/product/VariantSelector';
 import { ProductDetails } from '@/components/product/ProductDetails';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/hooks/useWishlist';
 import { Badge } from '@/components/ui/badge';
 
 export const ProductDetail: React.FC = () => {
@@ -14,10 +18,13 @@ export const ProductDetail: React.FC = () => {
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState(product.colors[0].name);
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
 
   const relatedProducts = products.slice(1, 5);
+  const isWishlisted = isInWishlist(product.id);
   
   const selectedColorObj = product.colors.find(c => c.name === selectedColor) || product.colors[0];
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
@@ -35,6 +42,18 @@ export const ProductDetail: React.FC = () => {
 
   const incrementQuantity = () => setQuantity(q => q + 1);
   const decrementQuantity = () => setQuantity(q => Math.max(1, q - 1));
+
+  const handleOpenQuickView = (product: Product) => {
+    setQuickViewProduct(product);
+  };
+
+  const handleCloseQuickView = () => {
+    setQuickViewProduct(null);
+  };
+
+  const handleWishlistToggle = () => {
+    toggleWishlist(product);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -128,11 +147,23 @@ export const ProductDetail: React.FC = () => {
             />
 
             {/* Size Selector */}
-            <SizeSelector
-              sizes={product.sizes}
-              selectedSize={selectedSize}
-              onSelectSize={setSelectedSize}
-            />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-900">Beden</span>
+                <button
+                  onClick={() => setSizeGuideOpen(true)}
+                  className="flex items-center gap-1 text-sm text-[var(--primary-coral)] hover:text-[var(--primary-peach)] font-medium transition-colors"
+                >
+                  <Ruler className="w-4 h-4" />
+                  Beden Rehberi
+                </button>
+              </div>
+              <SizeSelector
+                sizes={product.sizes}
+                selectedSize={selectedSize}
+                onSelectSize={setSelectedSize}
+              />
+            </div>
 
             {/* Quantity & Add to Cart */}
             <div className="space-y-4 pt-4">
@@ -164,13 +195,15 @@ export const ProductDetail: React.FC = () => {
                   Sepete Ekle
                 </Button>
                 <Button
-                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  onClick={handleWishlistToggle}
                   variant="outline"
-                  className="h-14 w-14"
+                  className={`h-14 w-14 transition-all ${
+                    isWishlisted ? 'bg-red-50 border-red-500 hover:bg-red-100' : ''
+                  }`}
                   size="lg"
                 >
                   <Heart
-                    className={`w-5 h-5 ${
+                    className={`w-5 h-5 transition-all ${
                       isWishlisted ? 'fill-red-500 text-red-500' : ''
                     }`}
                   />
@@ -218,17 +251,32 @@ export const ProductDetail: React.FC = () => {
           fabric={product.fabric}
           care={product.care}
         />
+      </div>
 
-        {/* Related Products */}
-        <section className="mt-20">
+      {/* Trust Band - Full Width */}
+      <TrustBand className="my-16" />
+
+      {/* Related Products */}
+      <div className="container-custom">
+        <section className="pb-12">
           <h2 className="text-2xl md:text-3xl font-bold mb-8">Benzer Ürünler</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {relatedProducts.map((relatedProduct) => (
-              <ProductCard key={relatedProduct.id} product={relatedProduct} />
+              <ProductCard key={relatedProduct.id} product={relatedProduct} onQuickView={handleOpenQuickView} />
             ))}
           </div>
         </section>
       </div>
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        product={quickViewProduct}
+        open={!!quickViewProduct}
+        onClose={handleCloseQuickView}
+      />
+
+      {/* Size Guide Modal */}
+      <SizeGuideModal open={sizeGuideOpen} onClose={() => setSizeGuideOpen(false)} />
 
       {/* Sticky Add to Cart (Mobile) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg z-40">
