@@ -46,7 +46,7 @@ function ShowcaseCard({ product }: { product: ShowcaseProduct }) {
   return (
     <Link
       to={`/product/${product.slug}`}
-      className="group block cursor-pointer flex-shrink-0 w-[160px] sm:w-[190px] lg:w-[220px]"
+      className="group block cursor-pointer w-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -120,7 +120,7 @@ function ShowcaseCard({ product }: { product: ShowcaseProduct }) {
 // ─── Skeleton card ─────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="flex-shrink-0 w-[160px] sm:w-[190px] lg:w-[220px]">
+    <div className="w-full">
       <Skeleton className="w-full aspect-[3/4] rounded-xl" />
       <div className="mt-3 space-y-2">
         <Skeleton className="h-3.5 w-3/4" />
@@ -217,12 +217,12 @@ export function EditorialProductShowcase({
         <CarouselContent className="-ml-3">
           {loadingProducts
             ? Array.from({ length: 4 }).map((_, i) => (
-                <CarouselItem key={i} className="pl-3 basis-[160px] sm:basis-[190px] lg:basis-[220px]">
+                <CarouselItem key={i} className="pl-3 basis-[55%] sm:basis-1/3 lg:basis-1/4">
                   <SkeletonCard />
                 </CarouselItem>
               ))
             : products.map((p) => (
-                <CarouselItem key={p.slug} className="pl-3 basis-[160px] sm:basis-[190px] lg:basis-[220px]">
+                <CarouselItem key={p.slug} className="pl-3 basis-[55%] sm:basis-1/3 lg:basis-1/4">
                   <ShowcaseCard product={p} />
                 </CarouselItem>
               ))
