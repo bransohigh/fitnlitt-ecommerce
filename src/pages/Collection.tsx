@@ -294,6 +294,7 @@ export const Collection: React.FC = () => {
   const convertToLegacyProduct = (apiProduct: APIProduct): Product => {
     return {
       id: apiProduct.id,
+      slug: apiProduct.slug,
       name: apiProduct.title,
       price: apiProduct.price,
       compareAtPrice: apiProduct.compare_at || undefined,
