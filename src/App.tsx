@@ -65,6 +65,7 @@ function AppContent() {
         <Route path="/loyalty" element={<PublicLayout><Loyalty /></PublicLayout>} />
         <Route path="/cart" element={<PublicLayout><Cart /></PublicLayout>} />
         <Route path="/checkout" element={<PublicLayout><Checkout /></PublicLayout>} />
+        <Route path="/collection" element={<PublicLayout><Collection /></PublicLayout>} />
         <Route path="/collection/:slug" element={<PublicLayout><Collection /></PublicLayout>} />
         <Route path="/product/:slug" element={<PublicLayout><ProductDetail /></PublicLayout>} />
         <Route path="/account" element={<PublicLayout><Account /></PublicLayout>} />

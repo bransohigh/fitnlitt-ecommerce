@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -36,17 +36,51 @@ export const StoryBlock: React.FC<StoryBlockProps> = ({
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
   const isImageLeft = imagePosition === 'left';
 
+  // Hover intent: delay open 100ms, delay close 250ms so cursor can travel to tooltip
+  const openTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (openTimer.current)  clearTimeout(openTimer.current);
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  }, []);
+
+  const openHotspot = (id: string) => {
+    if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
+    openTimer.current = setTimeout(() => setActiveHotspot(id), 100);
+  };
+
+  const closeHotspot = () => {
+    if (openTimer.current) { clearTimeout(openTimer.current); openTimer.current = null; }
+    closeTimer.current = setTimeout(() => setActiveHotspot(null), 250);
+  };
+
+  const keepOpen = () => {
+    if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
+  };
+
   const toggleHotspot = (id: string) =>
     setActiveHotspot(prev => (prev === id ? null : id));
+
+  // Mobile: tap outside any hotspot closes tooltip
+  useEffect(() => {
+    if (activeHotspot === null) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-hotspot]')) setActiveHotspot(null);
+    };
+    document.addEventListener('click', handleOutsideClick, { capture: true });
+    return () => document.removeEventListener('click', handleOutsideClick, { capture: true });
+  }, [activeHotspot]);
 
   return (
     <div className={`grid md:grid-cols-2 gap-8 md:gap-12 items-center ${!isImageLeft ? 'md:flex-row-reverse' : ''}`}>
 
       {/* ── Image + Hotspots ─────────────────────────────────── */}
       <motion.div
-        initial={{ opacity: 0, x: isImageLeft ? -30 : 30 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
+        initial={{ x: isImageLeft ? -30 : 30 }}
+        whileInView={{ x: 0 }}
+        viewport={{ once: true, amount: 0.1 }}
         transition={{ duration: 0.6 }}
         className={`relative aspect-[4/5] rounded-lg ${!isImageLeft ? 'md:order-2' : ''}`}
         /* NOTE: NO overflow-hidden here — it would clip hotspot tooltips.
@@ -80,14 +114,15 @@ export const StoryBlock: React.FC<StoryBlockProps> = ({
           return (
             <div
               key={hotspot.id}
+              data-hotspot
               className="absolute z-10"
               style={{
                 left: `${hotspot.x}%`,
                 top:  `${hotspot.y}%`,
                 transform: 'translate(-50%, -50%)',
               }}
-              onMouseEnter={() => setActiveHotspot(hotspot.id)}
-              onMouseLeave={() => setActiveHotspot(null)}
+              onMouseEnter={() => openHotspot(hotspot.id)}
+              onMouseLeave={() => closeHotspot()}
               onClick={() => toggleHotspot(hotspot.id)}
             >
               {/* Marker button */}
@@ -116,8 +151,10 @@ export const StoryBlock: React.FC<StoryBlockProps> = ({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.92, y: 6 }}
                     transition={{ duration: 0.18 }}
-                    className={`absolute ${hAlignClass} ${vAlignClass} w-56 bg-white rounded-xl shadow-2xl overflow-hidden z-30 pointer-events-none`}
+                    className={`absolute ${hAlignClass} ${vAlignClass} w-56 bg-white rounded-xl shadow-2xl overflow-hidden z-30`}
                     style={{ maxWidth: 'min(224px, 55vw)' }}
+                    onMouseEnter={keepOpen}
+                    onMouseLeave={closeHotspot}
                   >
                     {/* Product image */}
                     <div className="aspect-[4/3] w-full overflow-hidden bg-gray-100">

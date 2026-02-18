@@ -174,12 +174,10 @@ export const Collection: React.FC = () => {
       params.set('page', currentPage.toString());
     }
 
-    // Update URL without page reload
-    const collectionSlug = getCollectionSlug();
-    const baseHash = collectionSlug ? `#collection/${collectionSlug}` : '#collection';
+    // Update URL without page reload (use real search params, not hash)
     const queryString = params.toString();
-    const newHash = queryString ? `${baseHash}?${queryString}` : baseHash;
-    window.history.replaceState(null, '', newHash);
+    const newUrl = window.location.pathname + (queryString ? `?${queryString}` : '');
+    window.history.replaceState(null, '', newUrl);
   }, [filters, sortBy, debouncedSearchQuery, currentPage, isInitialized]);
 
   // Fetch collection info
@@ -316,7 +314,7 @@ export const Collection: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Collection Banner */}
-      {collection && (
+      {collection ? (
         <section className="relative h-[40vh] md:h-[50vh] overflow-hidden">
           <img
             src={collection.hero_image}
@@ -331,7 +329,15 @@ export const Collection: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
+      ) : sortBy === 'newest' ? (
+        <section className="bg-[var(--brand-cream)] py-12">
+          <div className="container-custom">
+            <p className="eyebrow-text mb-3 text-[var(--primary-coral)]">Koleksiyon</p>
+            <h1 className="text-4xl md:text-5xl font-bold text-[var(--brand-black)]">Yeni Ürünler</h1>
+            <p className="text-gray-600 mt-3 max-w-xl">En yeni ürünleri keşfet, stilini tazele.</p>
+          </div>
+        </section>
+      ) : null}
 
       {/* Main Content */}
       <section className="py-8 md:py-12">

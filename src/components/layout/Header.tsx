@@ -46,7 +46,7 @@ export const Header: React.FC = () => {
     {
       id: 'new',
       label: 'Yeni Ürünler',
-      href: '/collection/yeni',
+      href: '/collection?sort=newest',
     },
     {
       id: 'about',
