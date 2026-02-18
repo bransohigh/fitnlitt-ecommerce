@@ -219,8 +219,8 @@ export function EditorialProductShowcase({
     <div className="relative flex-1 min-w-0 -mx-4 px-4 lg:mx-0 lg:px-0">
       <div
         ref={sliderRef}
-        className="flex gap-4 lg:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 scrollbar-none"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex gap-4 lg:gap-5 overflow-x-auto scroll-smooth snap-x snap-proximity pb-2 scrollbar-none touch-pan-x"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
       >
         {loadingProducts
           ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
