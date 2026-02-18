@@ -105,7 +105,7 @@ export const Home: React.FC = () => {
                       ))
                     : heroProducts.map((product) => (
                     <CarouselItem key={product.id} className="pl-4 basis-4/5 sm:basis-3/5 lg:basis-[65%]">
-                      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden group">
+                      <Link to={`/product/${product.slug}`} className="block relative aspect-[3/4] rounded-2xl overflow-hidden group">
                         <img
                           src={product.images[0]}
                           alt={product.name}
@@ -116,7 +116,7 @@ export const Home: React.FC = () => {
                           <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
                           <p className="text-2xl font-bold">{formatPrice(product.price)} TL</p>
                         </div>
-                      </div>
+                      </Link>
                     </CarouselItem>
                   ))}
                 </CarouselContent>
