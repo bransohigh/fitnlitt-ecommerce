@@ -11,10 +11,9 @@ import {
 } from '@/lib/api-client';
 import { Product, Collection } from '@/data/products';
 
-// ─── Adapters ─────────────────────────────────────────────────────────────────
+// ─── Adapters (kept here for internal use, exported via barrel if needed) ─────
 
-/** Convert API collection → legacy Collection shape used by Header/MegaMenu/CollectionCard */
-export function adaptCollection(c: APICollection): Collection {
+function adaptCollection(c: APICollection): Collection {
   return {
     id: c.id,
     name: c.title,
@@ -26,7 +25,7 @@ export function adaptCollection(c: APICollection): Collection {
 }
 
 /** Convert API product → legacy Product shape used by ProductCard/QuickViewModal */
-export function adaptProduct(p: APIProduct): Product {
+function adaptProduct(p: APIProduct): Product {
   return {
     id: p.id,
     slug: p.slug,
