@@ -1,22 +1,15 @@
 /**
  * EditorialProductShowcase
- * Left editorial hero + right 2×2 product grid
- *
- * Props:
- *   title, subtitle, ctaLabel, ctaHref  — hero text / CTA
- *   imageSrc                            — hero background image
- *   collectionSlug                      — auto-fetch 4 products from this collection
- *   products                            — OR pass products explicitly (overrides fetch)
- *   bgColor                             — section background ('white' | 'cream' etc.)
- *   imagePosition                       — 'left' | 'right' (which side the hero goes)
+ * Compact left editorial hero + right horizontal product slider (4 cards in one row)
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetchProducts, APIProduct } from '@/lib/api-client';
 import { formatPrice } from '@/lib/utils';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface ShowcaseProduct {
   slug: string;
@@ -40,15 +33,16 @@ interface EditorialProductShowcaseProps {
   imagePosition?: 'left' | 'right';
 }
 
-// ─── Mini product card ────────────────────────────────────────────────────────
+// ─── Product card: fixed width, full height flex column ────────────────────
 function ShowcaseCard({ product }: { product: ShowcaseProduct }) {
+  const currency = product.currency === 'TRY' ? '₺' : (product.currency ?? '₺');
   return (
     <Link
       to={`/product/${product.slug}`}
-      className="group flex flex-col bg-white hover:bg-[#faf9f7] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary-coral)]"
+      className="group flex flex-col flex-shrink-0 snap-start w-[188px] sm:w-[210px] h-full border-r border-gray-200 bg-white hover:bg-[#faf9f7] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary-coral)]"
     >
-      {/* Image area — fixed aspect, object-contain */}
-      <div className="w-full aspect-[3/4] bg-[#f7f5f2] overflow-hidden flex items-center justify-center p-4">
+      {/* Image — fills remaining height */}
+      <div className="flex-1 overflow-hidden bg-[#f7f5f2] flex items-center justify-center p-3">
         {product.primaryImageUrl ? (
           <img
             src={product.primaryImageUrl}
@@ -57,62 +51,61 @@ function ShowcaseCard({ product }: { product: ShowcaseProduct }) {
             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-            <span className="text-4xl text-gray-300">✦</span>
-          </div>
+          <span className="text-5xl text-gray-200">✦</span>
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex flex-col flex-1 p-3 gap-1">
+      {/* Info strip — fixed height at bottom */}
+      <div className="flex-shrink-0 p-3 border-t border-gray-100 space-y-1">
         {product.badgeLabel && (
-          <p className="text-[10px] font-semibold tracking-widest uppercase text-[var(--primary-coral)]">
+          <p className="text-[9px] font-bold tracking-widest uppercase text-[var(--primary-coral)]">
             {product.badgeLabel}
           </p>
         )}
-        <p className="text-sm font-medium text-[var(--brand-black)] leading-snug line-clamp-2 flex-1">
+        <p className="text-xs font-medium text-[var(--brand-black)] leading-snug line-clamp-2">
           {product.title}
         </p>
-        <div className="flex items-baseline gap-2 mt-1">
-          <span className="text-sm font-bold text-[var(--brand-black)]">
-            {formatPrice(product.price)}{product.currency === 'TRY' ? '₺' : (product.currency ?? '₺')}
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-xs font-bold text-[var(--brand-black)]">
+            {formatPrice(product.price)}{currency}
           </span>
           {product.compare_at && product.compare_at > product.price && (
-            <span className="text-xs text-gray-400 line-through">
-              {formatPrice(product.compare_at)}{product.currency === 'TRY' ? '₺' : (product.currency ?? '₺')}
+            <span className="text-[10px] text-gray-400 line-through">
+              {formatPrice(product.compare_at)}{currency}
             </span>
           )}
         </div>
         <Button
           size="sm"
           variant="outline"
-          className="mt-2 w-full text-xs font-semibold border-[var(--brand-black)] text-[var(--brand-black)] hover:bg-[var(--brand-black)] hover:text-white transition-colors"
+          className="w-full h-7 text-[10px] font-semibold border-gray-300 text-[var(--brand-black)] hover:bg-[var(--brand-black)] hover:text-white hover:border-[var(--brand-black)] transition-colors"
           tabIndex={-1}
-          asChild={false}
         >
-          Ürünü İncele
+          İncele
         </Button>
       </div>
     </Link>
   );
 }
 
-// ─── Skeleton card ────────────────────────────────────────────────────────────
+// ─── Skeleton card ─────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="flex flex-col bg-white">
-      <Skeleton className="w-full aspect-[3/4]" />
-      <div className="p-3 space-y-2">
-        <Skeleton className="h-3 w-16" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-1/2" />
-        <Skeleton className="h-8 w-full mt-2" />
+    <div className="flex flex-col flex-shrink-0 snap-start w-[188px] sm:w-[210px] h-full border-r border-gray-200 bg-white">
+      <div className="flex-1 bg-gray-100">
+        <Skeleton className="w-full h-full" />
+      </div>
+      <div className="flex-shrink-0 p-3 border-t border-gray-100 space-y-1.5">
+        <Skeleton className="h-2.5 w-12" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-2/3" />
+        <Skeleton className="h-7 w-full mt-1" />
       </div>
     </div>
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Main component ────────────────────────────────────────────────────────
 export function EditorialProductShowcase({
   title,
   subtitle,
@@ -126,73 +119,69 @@ export function EditorialProductShowcase({
 }: EditorialProductShowcaseProps) {
   const [products, setProducts] = useState<ShowcaseProduct[]>(propProducts ?? []);
   const [loadingProducts, setLoadingProducts] = useState(!propProducts && !!collectionSlug);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (propProducts) {
-      setProducts(propProducts);
-      return;
-    }
+    if (propProducts) { setProducts(propProducts); return; }
     if (!collectionSlug) return;
 
     let cancelled = false;
     setLoadingProducts(true);
 
-    fetchProducts({ collection: collectionSlug, limit: 4, sort: 'recommended' })
+    fetchProducts({ collection: collectionSlug, limit: 8, sort: 'recommended' })
       .then(({ items }) => {
         if (cancelled) return;
         setProducts(
-          items.slice(0, 4).map((p: APIProduct) => ({
+          items.slice(0, 8).map((p: APIProduct) => ({
             slug: p.slug,
             title: p.title,
             price: p.price,
             compare_at: p.compare_at,
             currency: p.currency,
             primaryImageUrl: p.primaryImage?.url,
-            badgeLabel: p.badges.isNew
-              ? 'Yeni'
-              : p.badges.isSale
-              ? 'İndirim'
-              : p.collection?.title,
+            badgeLabel: p.badges.isNew ? 'Yeni' : p.badges.isSale ? 'İndirim' : undefined,
           }))
         );
       })
       .catch(console.error)
-      .finally(() => {
-        if (!cancelled) setLoadingProducts(false);
-      });
+      .finally(() => { if (!cancelled) setLoadingProducts(false); });
 
     return () => { cancelled = true; };
   }, [collectionSlug, propProducts]);
 
-  const bgClass =
-    bgColor === 'cream' ? 'bg-[var(--brand-cream)]' : 'bg-white';
+  function scrollSlider(dir: 'left' | 'right') {
+    const el = sliderRef.current;
+    if (!el) return;
+    const cardWidth = el.querySelector('a, div')?.clientWidth ?? 210;
+    el.scrollBy({ left: dir === 'left' ? -cardWidth * 2 : cardWidth * 2, behavior: 'smooth' });
+  }
 
+  const bgClass = bgColor === 'cream' ? 'bg-[var(--brand-cream)]' : 'bg-white';
+  const cards   = loadingProducts ? Array.from({ length: 4 }) : products;
+
+  // ── Hero panel ─────────────────────────────────────────────────────────
   const heroPanel = (
-    <div className="relative w-full h-full min-h-[420px] lg:min-h-0 overflow-hidden">
-      {/* Hero image — covers the panel */}
+    <div className="relative flex-shrink-0 w-full lg:w-[240px] xl:w-[280px] h-56 lg:h-full overflow-hidden border-b border-gray-200 lg:border-b-0 lg:border-r border-gray-200">
       <img
         src={imageSrc}
         alt={title}
         className="absolute inset-0 w-full h-full object-cover"
       />
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-      {/* Editorial text */}
-      <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-10 text-white">
-        <p className="text-xs font-bold tracking-[0.2em] uppercase text-[var(--primary-coral)] mb-3">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-6 text-white">
+        <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-[var(--primary-coral)] mb-1.5">
           Koleksiyon
         </p>
-        <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight mb-3">
+        <h2 className="text-lg lg:text-xl xl:text-2xl font-bold leading-snug mb-2">
           {title}
         </h2>
-        <p className="text-sm lg:text-base text-white/80 mb-6 max-w-sm leading-relaxed">
+        <p className="text-xs text-white/75 mb-4 leading-relaxed hidden lg:block">
           {subtitle}
         </p>
         <Button
           asChild
-          size="lg"
-          className="bg-[var(--primary-coral)] hover:bg-[var(--primary-peach)] text-[var(--brand-black)] font-semibold"
+          size="sm"
+          className="bg-[var(--primary-coral)] hover:bg-[var(--primary-peach)] text-[var(--brand-black)] font-semibold text-xs h-8 px-4"
         >
           <Link to={ctaHref}>{ctaLabel}</Link>
         </Button>
@@ -200,42 +189,51 @@ export function EditorialProductShowcase({
     </div>
   );
 
-  const gridPanel = (
-    /* gap-px + bg-gray-200 = catalog-style thin grid lines */
-    <div className="w-full h-full grid grid-cols-2 gap-px bg-gray-200">
-      {loadingProducts
-        ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-        : products.length > 0
-        ? products.slice(0, 4).map((p) => <ShowcaseCard key={p.slug} product={p} />)
-        : /* Fallback ghost cards */ Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="aspect-[3/4] bg-white flex items-center justify-center">
-              <span className="text-gray-300 text-sm">Yükleniyor…</span>
-            </div>
-          ))}
+  // ── Slider panel ────────────────────────────────────────────────────────
+  const sliderPanel = (
+    <div className="relative flex-1 min-w-0 overflow-hidden">
+      {/* Scroll container */}
+      <div
+        ref={sliderRef}
+        className="flex h-full overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-none"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {loadingProducts
+          ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+          : cards.map((p) => <ShowcaseCard key={(p as ShowcaseProduct).slug} product={p as ShowcaseProduct} />)
+        }
+      </div>
+
+      {/* Prev / Next arrows — only when not loading */}
+      {!loadingProducts && products.length > 0 && (
+        <>
+          <button
+            onClick={() => scrollSlider('left')}
+            aria-label="Geri"
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white/90 border border-gray-200 shadow flex items-center justify-center hover:bg-white transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4 text-gray-700" />
+          </button>
+          <button
+            onClick={() => scrollSlider('right')}
+            aria-label="İleri"
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white/90 border border-gray-200 shadow flex items-center justify-center hover:bg-white transition-colors"
+          >
+            <ChevronRight className="w-4 h-4 text-gray-700" />
+          </button>
+        </>
+      )}
     </div>
   );
 
   return (
-    <div className={`w-full ${bgClass}`}>
-      <div className="container-custom py-16 md:py-24">
-        {/* Desktop 2-column, Mobile stack */}
-        <div
-          className={
-            imagePosition === 'left'
-              ? 'grid grid-cols-1 lg:grid-cols-[38%_62%] lg:min-h-[580px] overflow-hidden border border-gray-200'
-              : 'grid grid-cols-1 lg:grid-cols-[62%_38%] lg:min-h-[580px] overflow-hidden border border-gray-200'
-          }
-        >
+    <div className={`w-full ${bgClass} py-10 md:py-14`}>
+      <div className="container-custom">
+        <div className="flex flex-col lg:flex-row overflow-hidden border border-gray-200 h-auto lg:h-[400px] xl:h-[420px]">
           {imagePosition === 'left' ? (
-            <>
-              <div className="relative border-b border-gray-200 lg:border-b-0 lg:border-r border-gray-200">{heroPanel}</div>
-              <div className="relative">{gridPanel}</div>
-            </>
+            <>{heroPanel}{sliderPanel}</>
           ) : (
-            <>
-              <div className="relative">{gridPanel}</div>
-              <div className="relative border-t border-gray-200 lg:border-t-0 lg:border-l border-gray-200">{heroPanel}</div>
-            </>
+            <>{sliderPanel}{heroPanel}</>
           )}
         </div>
       </div>
