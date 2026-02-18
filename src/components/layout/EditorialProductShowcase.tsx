@@ -144,6 +144,52 @@ export function EditorialProductShowcase({
   const [products, setProducts] = useState<ShowcaseProduct[]>(propProducts ?? []);
   const [loadingProducts, setLoadingProducts] = useState(!propProducts && !!collectionSlug);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const scrollStart = useRef(0);
+  const didDrag = useRef(false);
+
+  // Pointer-based drag-to-scroll (works on touch + mouse)
+  useEffect(() => {
+    const el = sliderRef.current;
+    if (!el) return;
+
+    const onDown = (e: PointerEvent) => {
+      isDragging.current = true;
+      didDrag.current = false;
+      dragStartX.current = e.clientX;
+      scrollStart.current = el.scrollLeft;
+      el.setPointerCapture(e.pointerId);
+      el.style.scrollBehavior = 'auto';
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!isDragging.current) return;
+      const dx = dragStartX.current - e.clientX;
+      if (Math.abs(dx) > 4) didDrag.current = true;
+      el.scrollLeft = scrollStart.current + dx;
+    };
+    const onUp = () => {
+      isDragging.current = false;
+      el.style.scrollBehavior = '';
+    };
+
+    const onClick = (e: MouseEvent) => {
+      if (didDrag.current) e.preventDefault();
+    };
+
+    el.addEventListener('pointerdown', onDown);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+    el.addEventListener('pointercancel', onUp);
+    el.addEventListener('click', onClick, true);
+    return () => {
+      el.removeEventListener('pointerdown', onDown);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', onUp);
+      el.removeEventListener('pointercancel', onUp);
+      el.removeEventListener('click', onClick, true);
+    };
+  }, []);
 
   useEffect(() => {
     if (propProducts) { setProducts(propProducts); return; }
@@ -219,8 +265,8 @@ export function EditorialProductShowcase({
     <div className="relative flex-1 min-w-0 -mx-4 px-4 lg:mx-0 lg:px-0">
       <div
         ref={sliderRef}
-        className="flex gap-4 lg:gap-5 overflow-x-auto scroll-smooth snap-x snap-proximity pb-2 scrollbar-none touch-pan-x"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        className="flex gap-4 lg:gap-5 overflow-x-auto pb-2 scrollbar-none select-none cursor-grab active:cursor-grabbing"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overscrollBehaviorX: 'contain' }}
       >
         {loadingProducts
           ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
