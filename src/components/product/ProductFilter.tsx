@@ -128,7 +128,10 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
         {expandedSections.size && (
           <div className="grid grid-cols-3 gap-2">
             {availableSizes.map((sizeOption) => {
-              const isDisabled = sizeOption.count === 0;
+              // Only disable if facets are loaded AND this size has 0 stock.
+              // When facets === null (not yet loaded), keep everything clickable.
+              const facetsLoaded = !!(facets?.sizes?.length);
+              const isDisabled = facetsLoaded && sizeOption.count === 0;
               const isSelected = filters.sizes.includes(sizeOption.value);
               
               return (
@@ -170,7 +173,9 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
           <div className="grid grid-cols-4 gap-3">
             {availableColors.map((color) => {
               const count = getColorCount(color.name);
-              const isDisabled = count === 0;
+              // Only disable if facets are loaded AND this color has 0 products.
+              const facetsLoaded = !!(facets?.colors?.length);
+              const isDisabled = facetsLoaded && count === 0;
               const isSelected = filters.colors.includes(color.name);
 
               return (
