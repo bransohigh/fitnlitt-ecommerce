@@ -1,10 +1,9 @@
 /**
- * Admin Collections Page - Devias Kit Style
- * Modern table with filters, search, and actions
+ * Admin Collections Page
+ * Table with search, add/edit modal, real delete
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabaseAuth } from '@/lib/supabase-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { Card } from '@/components/ui/card';
@@ -14,6 +13,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Search, Plus, Edit, Trash2, Eye, AlertCircle, FolderKanban } from 'lucide-react';
 
 interface Collection {
@@ -21,17 +24,42 @@ interface Collection {
   slug: string;
   title: string;
   description: string | null;
+  hero_image: string | null;
   product_count?: number;
   is_active: boolean;
   updated_at: string;
 }
 
+const emptyForm = {
+  title: '',
+  slug: '',
+  description: '',
+  hero_image: '',
+  is_active: true,
+};
+type FormState = typeof emptyForm;
+
+function slugify(str: string) {
+  return str
+    .toLowerCase()
+    .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+    .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export function AdminCollections() {
-  const navigate = useNavigate();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  const [form, setForm] = useState<FormState>(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     fetchCollections();
@@ -42,12 +70,12 @@ export function AdminCollections() {
       setLoading(true);
       const { data, error } = await supabaseAuth
         .from('collections')
-        .select('id, slug, title, description, created_at')
+        .select('id, slug, title, description, hero_image, created_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Get product counts in a second query
+      // Product counts
       const { data: counts } = await supabaseAuth
         .from('products')
         .select('collection_id')
@@ -58,17 +86,18 @@ export function AdminCollections() {
         if (p.collection_id) countMap[p.collection_id] = (countMap[p.collection_id] || 0) + 1;
       });
 
-      const transformedCollections = (data ?? []).map((c: any) => ({
-        id: c.id,
-        slug: c.slug,
-        title: c.title,
-        description: c.description,
-        product_count: countMap[c.id] || 0,
-        is_active: true,
-        updated_at: c.created_at || new Date().toISOString(),
-      }));
-
-      setCollections(transformedCollections);
+      setCollections(
+        (data ?? []).map((c: any) => ({
+          id: c.id,
+          slug: c.slug,
+          title: c.title,
+          description: c.description ?? null,
+          hero_image: c.hero_image ?? null,
+          product_count: countMap[c.id] || 0,
+          is_active: true,
+          updated_at: c.created_at || new Date().toISOString(),
+        }))
+      );
     } catch (err: any) {
       setError(err.message || 'Failed to load collections');
     } finally {
@@ -76,18 +105,75 @@ export function AdminCollections() {
     }
   }
 
-  const handleDelete = async (collectionId: string) => {
-    if (!confirm('Are you sure you want to delete this collection?')) {
-      return;
+  function openAdd() {
+    setEditingCollection(null);
+    setForm(emptyForm);
+    setFormError('');
+    setModalOpen(true);
+  }
+
+  function openEdit(collection: Collection) {
+    setEditingCollection(collection);
+    setForm({
+      title: collection.title,
+      slug: collection.slug,
+      description: collection.description ?? '',
+      hero_image: collection.hero_image ?? '',
+      is_active: collection.is_active,
+    });
+    setFormError('');
+    setModalOpen(true);
+  }
+
+  function handleTitleChange(title: string) {
+    setForm((f) => ({
+      ...f,
+      title,
+      slug: editingCollection ? f.slug : slugify(title),
+    }));
+  }
+
+  async function handleSave() {
+    setFormError('');
+    if (!form.title.trim()) { setFormError('Koleksiyon adı zorunlu.'); return; }
+    if (!form.slug.trim()) { setFormError('Slug zorunlu.'); return; }
+
+    setSaving(true);
+    try {
+      const payload: any = {
+        title: form.title.trim(),
+        slug: form.slug.trim(),
+        description: form.description.trim() || null,
+        hero_image: form.hero_image.trim() || null,
+      };
+
+      if (editingCollection) {
+        const { error } = await supabaseAuth.from('collections').update(payload).eq('id', editingCollection.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseAuth.from('collections').insert(payload);
+        if (error) throw error;
+      }
+
+      setModalOpen(false);
+      await fetchCollections();
+    } catch (err: any) {
+      setFormError(err.message || 'Kaydedilemedi.');
+    } finally {
+      setSaving(false);
     }
+  }
 
-    // Implement delete logic here
-    alert('Delete functionality coming soon');
-  };
+  async function handleDelete(collection: Collection) {
+    if (!confirm(`"${collection.title}" koleksiyonunu silmek istediğinize emin misiniz?`)) return;
+    const { error } = await supabaseAuth.from('collections').delete().eq('id', collection.id);
+    if (error) { alert(error.message); return; }
+    await fetchCollections();
+  }
 
-  const filteredCollections = collections.filter((collection) =>
-    collection.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    collection.slug.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCollections = collections.filter((c) =>
+    c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.slug.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -95,32 +181,27 @@ export function AdminCollections() {
       {/* Page Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Collections</h1>
-          <p className="text-gray-600">Organize your products into collections</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Koleksiyonlar</h1>
+          <p className="text-gray-600">Koleksiyonları yönet</p>
         </div>
-        <Button onClick={() => alert('Koleksiyon ekleme yakında aktif olacak.')} size="lg">
+        <Button onClick={openAdd} size="lg">
           <Plus className="w-4 h-4 mr-2" />
-          Add Collection
+          Koleksiyon Ekle
         </Button>
       </div>
 
       {/* Filters Card */}
       <Card className="mb-6 p-6">
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
+          <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               type="search"
-              placeholder="Search collections..."
+              placeholder="Koleksiyon ara..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
-          <Button variant="outline">
-            Filter
-          </Button>
-        </div>
       </Card>
 
       {error && (
@@ -135,11 +216,11 @@ export function AdminCollections() {
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
-              <TableHead className="font-semibold">Collection</TableHead>
+              <TableHead className="font-semibold">Koleksiyon</TableHead>
               <TableHead className="font-semibold">Slug</TableHead>
-              <TableHead className="font-semibold">Description</TableHead>
-              <TableHead className="font-semibold">Products</TableHead>
-              <TableHead className="font-semibold text-right">Actions</TableHead>
+              <TableHead className="font-semibold">Açıklama</TableHead>
+              <TableHead className="font-semibold">Ürünler</TableHead>
+              <TableHead className="font-semibold text-right">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -162,13 +243,10 @@ export function AdminCollections() {
                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
                       <FolderKanban className="w-8 h-8 text-gray-400" />
                     </div>
-                    <div>
-                      <p className="text-gray-900 font-medium mb-1">No collections yet</p>
-                      <p className="text-sm text-gray-500">Get started by creating your first collection</p>
-                    </div>
-                    <Button onClick={() => alert('Koleksiyon ekleme yakında aktif olacak.')}>
+                    <p className="text-gray-900 font-medium">Henüz koleksiyon yok</p>
+                    <Button onClick={openAdd}>
                       <Plus className="w-4 h-4 mr-2" />
-                      Add Collection
+                      İlk Koleksiyonu Ekle
                     </Button>
                   </div>
                 </TableCell>
@@ -192,25 +270,28 @@ export function AdminCollections() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1">
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => navigate(`/collection/${collection.slug}`)}
+                        title="Ön izle"
+                        onClick={() => window.open(`/collection/${collection.slug}`, '_blank')}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => navigate(`/admin/collections/${collection.id}`)}
+                        title="Düzenle"
+                        onClick={() => openEdit(collection)}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleDelete(collection.id)}
+                        title="Sil"
+                        onClick={() => handleDelete(collection)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -223,19 +304,98 @@ export function AdminCollections() {
           </TableBody>
         </Table>
 
-        {/* Table Footer */}
         {!loading && filteredCollections.length > 0 && (
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="px-6 py-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
-              Showing {filteredCollections.length} of {collections.length} collections
+              {filteredCollections.length} / {collections.length} koleksiyon gösteriliyor
             </p>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled>Previous</Button>
-              <Button variant="outline" size="sm" disabled>Next</Button>
-            </div>
           </div>
         )}
       </Card>
+
+      {/* Add / Edit Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingCollection ? 'Koleksiyonu Düzenle' : 'Yeni Koleksiyon Ekle'}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {formError && (
+              <Alert variant="destructive">
+                <AlertCircle className="w-4 h-4" />
+                <AlertDescription>{formError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div>
+              <Label htmlFor="c-title">Koleksiyon Adı *</Label>
+              <Input
+                id="c-title"
+                value={form.title}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                placeholder="Örn: She Moves"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="c-slug">Slug *</Label>
+              <Input
+                id="c-slug"
+                value={form.slug}
+                onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                placeholder="she-moves"
+                className="mt-1 font-mono text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">URL'de kullanılır. Örn: /collection/she-moves</p>
+            </div>
+
+            <div>
+              <Label htmlFor="c-desc">Açıklama</Label>
+              <Textarea
+                id="c-desc"
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Koleksiyon açıklaması..."
+                rows={3}
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="c-hero">Hero Görsel URL</Label>
+              <Input
+                id="c-hero"
+                value={form.hero_image}
+                onChange={(e) => setForm((f) => ({ ...f, hero_image: e.target.value }))}
+                placeholder="https://..."
+                className="mt-1"
+              />
+            </div>
+
+            <div className="flex items-center justify-between border rounded-lg p-3">
+              <div>
+                <p className="font-medium text-sm">Aktif</p>
+                <p className="text-xs text-gray-500">Müşteriler bu koleksiyonu görebilir</p>
+              </div>
+              <Switch
+                checked={form.is_active}
+                onCheckedChange={(v) => setForm((f) => ({ ...f, is_active: v }))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setModalOpen(false)} disabled={saving}>
+              İptal
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? 'Kaydediliyor...' : editingCollection ? 'Kaydet' : 'Koleksiyon Ekle'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminShell>
   );
 }

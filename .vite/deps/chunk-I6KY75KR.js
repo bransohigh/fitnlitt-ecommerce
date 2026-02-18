@@ -14,6 +14,17 @@ import {
   __toESM
 } from "./chunk-G3PMV62Z.js";
 
+// node_modules/.pnpm/@radix-ui+primitive@1.1.3/node_modules/@radix-ui/primitive/dist/index.mjs
+var canUseDOM = !!(typeof window !== "undefined" && window.document && window.document.createElement);
+function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
+  return function handleEvent(event) {
+    originalEventHandler == null ? void 0 : originalEventHandler(event);
+    if (checkForDefaultPrevented === false || !event.defaultPrevented) {
+      return ourEventHandler == null ? void 0 : ourEventHandler(event);
+    }
+  };
+}
+
 // node_modules/.pnpm/@radix-ui+react-context@1.1.2_@types+react@19.2.14_react@19.2.4/node_modules/@radix-ui/react-context/dist/index.mjs
 var React = __toESM(require_react(), 1);
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
@@ -91,17 +102,6 @@ function composeContextScopes(...scopes) {
   };
   createScope.scopeName = baseScope.scopeName;
   return createScope;
-}
-
-// node_modules/.pnpm/@radix-ui+primitive@1.1.3/node_modules/@radix-ui/primitive/dist/index.mjs
-var canUseDOM = !!(typeof window !== "undefined" && window.document && window.document.createElement);
-function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
-  return function handleEvent(event) {
-    originalEventHandler == null ? void 0 : originalEventHandler(event);
-    if (checkForDefaultPrevented === false || !event.defaultPrevented) {
-      return ourEventHandler == null ? void 0 : ourEventHandler(event);
-    }
-  };
 }
 
 // node_modules/.pnpm/@radix-ui+react-use-layout-effect@1.1.1_@types+react@19.2.14_react@19.2.4/node_modules/@radix-ui/react-use-layout-effect/dist/index.mjs
@@ -323,13 +323,13 @@ function dispatchDiscreteCustomEvent(target, event) {
 }
 
 export {
+  composeEventHandlers,
   createContext2,
   createContextScope,
-  composeEventHandlers,
   useLayoutEffect2,
   useControllableState,
   createSlot,
   Primitive,
   dispatchDiscreteCustomEvent
 };
-//# sourceMappingURL=chunk-2HTTESEJ.js.map
+//# sourceMappingURL=chunk-I6KY75KR.js.map
