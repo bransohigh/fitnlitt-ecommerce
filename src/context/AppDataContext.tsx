@@ -85,7 +85,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     Promise.all([
       fetchCollections(),
-      fetchProducts({ limit: 12, sort: 'newest' }),
+      fetchProducts({ limit: 12, sort: 'recommended' }),
     ])
       .then(([colRes, prodRes]) => {
         console.log('[AppData] collections:', colRes.collections.length, 'products:', prodRes.items.length);
