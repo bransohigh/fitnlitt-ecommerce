@@ -3,13 +3,14 @@
  * Compact left editorial hero + right horizontal product slider (4 cards in one row)
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 import { fetchProducts, APIProduct } from '@/lib/api-client';
 import { formatPrice } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 export interface ShowcaseProduct {
   slug: string;
@@ -143,52 +144,6 @@ export function EditorialProductShowcase({
 }: EditorialProductShowcaseProps) {
   const [products, setProducts] = useState<ShowcaseProduct[]>(propProducts ?? []);
   const [loadingProducts, setLoadingProducts] = useState(!propProducts && !!collectionSlug);
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const dragStartX = useRef(0);
-  const scrollStart = useRef(0);
-  const didDrag = useRef(false);
-
-  // Mouse drag-to-scroll (desktop). Touch devices use native overflow-x scroll — no interference.
-  useEffect(() => {
-    const el = sliderRef.current;
-    if (!el) return;
-
-    const onDown = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse') return; // let touch scroll natively
-      isDragging.current = true;
-      didDrag.current = false;
-      dragStartX.current = e.clientX;
-      scrollStart.current = el.scrollLeft;
-      el.style.scrollBehavior = 'auto';
-    };
-    const onMove = (e: PointerEvent) => {
-      if (!isDragging.current || e.pointerType !== 'mouse') return;
-      const dx = dragStartX.current - e.clientX;
-      if (Math.abs(dx) > 4) didDrag.current = true;
-      el.scrollLeft = scrollStart.current + dx;
-    };
-    const onUp = (e: PointerEvent) => {
-      if (e.pointerType !== 'mouse') return;
-      isDragging.current = false;
-      el.style.scrollBehavior = '';
-    };
-
-    const onClick = (e: MouseEvent) => {
-      if (didDrag.current) e.preventDefault();
-    };
-
-    el.addEventListener('pointerdown', onDown);
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
-    el.addEventListener('click', onClick, true);
-    return () => {
-      el.removeEventListener('pointerdown', onDown);
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      el.removeEventListener('click', onClick, true);
-    };
-  }, []);
 
   useEffect(() => {
     if (propProducts) { setProducts(propProducts); return; }
@@ -217,13 +172,6 @@ export function EditorialProductShowcase({
 
     return () => { cancelled = true; };
   }, [collectionSlug, propProducts]);
-
-  function scrollSlider(dir: 'left' | 'right') {
-    const el = sliderRef.current;
-    if (!el) return;
-    const cardWidth = el.querySelector('a, div')?.clientWidth ?? 220;
-    el.scrollBy({ left: dir === 'left' ? -cardWidth * 2 : cardWidth * 2, behavior: 'smooth' });
-  }
 
   const bgClass = bgColor === 'cream' ? 'bg-[var(--brand-cream)]' : 'bg-white';
 
@@ -259,39 +207,30 @@ export function EditorialProductShowcase({
     </div>
   );
 
-  // ── Slider panel ────────────────────────────────────────────────────────
+  // ── Slider panel — Embla Carousel (same engine as Favoriler) ──────────
   const sliderPanel = (
-    <div className="relative flex-1 min-w-0 -mx-4 px-4 lg:mx-0 lg:px-0">
-      <div
-        ref={sliderRef}
-        className="flex gap-4 lg:gap-5 overflow-x-auto pb-2 scrollbar-none"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overscrollBehaviorX: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+    <div className="flex-1 min-w-0">
+      <Carousel
+        opts={{ align: 'start', loop: false, dragFree: true }}
+        className="w-full"
       >
-        {loadingProducts
-          ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-          : products.map((p) => <ShowcaseCard key={p.slug} product={p} />)
-        }
-      </div>
-
-      {/* Prev / Next arrows — desktop only */}
-      {!loadingProducts && products.length > 0 && (
-        <>
-          <button
-            onClick={() => scrollSlider('left')}
-            aria-label="Geri"
-            className="absolute -left-3 top-[42%] -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-md hidden lg:flex items-center justify-center hover:bg-gray-50 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4 text-gray-700" />
-          </button>
-          <button
-            onClick={() => scrollSlider('right')}
-            aria-label="İleri"
-            className="absolute -right-3 top-[42%] -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-gray-200 shadow-md hidden lg:flex items-center justify-center hover:bg-gray-50 transition-colors"
-          >
-            <ChevronRight className="w-4 h-4 text-gray-700" />
-          </button>
-        </>
-      )}
+        <CarouselContent className="-ml-3">
+          {loadingProducts
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <CarouselItem key={i} className="pl-3 basis-[160px] sm:basis-[190px] lg:basis-[220px]">
+                  <SkeletonCard />
+                </CarouselItem>
+              ))
+            : products.map((p) => (
+                <CarouselItem key={p.slug} className="pl-3 basis-[160px] sm:basis-[190px] lg:basis-[220px]">
+                  <ShowcaseCard product={p} />
+                </CarouselItem>
+              ))
+          }
+        </CarouselContent>
+        <CarouselPrevious className="hidden lg:flex -left-4" />
+        <CarouselNext className="hidden lg:flex -right-4" />
+      </Carousel>
     </div>
   );
 
