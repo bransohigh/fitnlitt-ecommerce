@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { ProductCard } from '@/components/product/ProductCard';
+import { QuickViewModal } from '@/components/product/QuickViewModal';
 import { ProductFilter, FilterState } from '@/components/product/ProductFilter';
 import { ActiveFilters } from '@/components/product/ActiveFilters';
-import { products, collections } from '@/data/products';
+import { products, collections, Product } from '@/data/products';
 import {
   Select,
   SelectContent,
@@ -28,10 +29,19 @@ export const Collection: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortOption>('recommended');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading] = useState(false);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const productsPerPage = 12;
 
   // Get collection info (for demo, using first collection)
   const collection = collections[0];
+
+  const handleOpenQuickView = (product: Product) => {
+    setQuickViewProduct(product);
+  };
+
+  const handleCloseQuickView = () => {
+    setQuickViewProduct(null);
+  };
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
@@ -219,7 +229,7 @@ export const Collection: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
                   {paginatedProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                    <ProductCard key={product.id} product={product} onQuickView={handleOpenQuickView} />
                   ))}
                 </div>
               )}
@@ -269,6 +279,13 @@ export const Collection: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        product={quickViewProduct}
+        open={!!quickViewProduct}
+        onClose={handleCloseQuickView}
+      />
     </div>
   );
 };

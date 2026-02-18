@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/product/ProductCard';
+import { QuickViewModal } from '@/components/product/QuickViewModal';
 import { CollectionCard } from '@/components/layout/CollectionCard';
 import { StoryBlock } from '@/components/layout/StoryBlock';
 import { TrustBlocks } from '@/components/layout/TrustBlocks';
 import { InstagramGallery } from '@/components/layout/InstagramGallery';
 import { TrainingPackages } from '@/components/layout/TrainingPackages';
-import { products, collections } from '@/data/products';
+import { products, collections, Product } from '@/data/products';
 import { motion } from 'framer-motion';
 import {
   Carousel,
@@ -19,12 +20,21 @@ import {
 
 export const Home: React.FC = () => {
   const [heroVariant] = useState<'editorial' | 'collection'>('editorial');
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   // Ana koleksiyonlar (ilk 5)
   const mainCollections = collections.slice(0, 5);
   
   // Best sellers
   const bestsellerProducts = products.filter((p) => p.badge === 'Çok Satan' || p.rating >= 4.7).slice(0, 8);
+
+  const handleOpenQuickView = (product: Product) => {
+    setQuickViewProduct(product);
+  };
+
+  const handleCloseQuickView = () => {
+    setQuickViewProduct(null);
+  };
 
   return (
     <div className="w-full">
@@ -204,7 +214,7 @@ export const Home: React.FC = () => {
             <CarouselContent className="-ml-4">
               {bestsellerProducts.map((product) => (
                 <CarouselItem key={product.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
-                  <ProductCard product={product} />
+                  <ProductCard product={product} onQuickView={handleOpenQuickView} />
                 </CarouselItem>
               ))}
             </CarouselContent>
@@ -281,6 +291,13 @@ export const Home: React.FC = () => {
 
       {/* Instagram Gallery */}
       <InstagramGallery />
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        product={quickViewProduct}
+        open={!!quickViewProduct}
+        onClose={handleCloseQuickView}
+      />
     </div>
   );
 };
