@@ -15,7 +15,10 @@
     "tsc": "tsc",
     "tscgo": "tsgo",
     "tsc-watch": "tsc --watch",
-    "dev:prod": "concurrently \"npm run build:watch\" \"npm run preview\""
+    "dev:prod": "concurrently \"npm run build:watch\" \"npm run preview\"",
+    "import:dry": "npx tsx scripts/importStoreApi.ts --limit=20 --dry-run",
+    "import:test": "npx tsx scripts/importStoreApi.ts --limit=20 --skip-images",
+    "import": "npx tsx scripts/importStoreApi.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
