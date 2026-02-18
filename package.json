@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "postinstall": "node fix-esbuild.js",
+    "postinstall": "node fix-esbuild.cjs",
     "dev": "vite",
     "install-and-dev": "pnpm install && pnpm dev",
     "build": "vite build --mode development",
