@@ -18,7 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Plus, Edit, Trash2, Eye, AlertCircle, Package } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, AlertCircle, Package, ImagePlus, X } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
 interface Product {
@@ -75,6 +75,8 @@ export function AdminProducts() {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [newImageUrl, setNewImageUrl] = useState('');
 
   useEffect(() => {
     fetchProducts();
@@ -129,11 +131,13 @@ export function AdminProducts() {
   function openAdd() {
     setEditingProduct(null);
     setForm(emptyForm);
+    setImages([]);
+    setNewImageUrl('');
     setFormError('');
     setModalOpen(true);
   }
 
-  function openEdit(product: Product) {
+  async function openEdit(product: Product) {
     setEditingProduct(product);
     setForm({
       title: product.title,
@@ -145,7 +149,15 @@ export function AdminProducts() {
       is_active: product.is_active,
       is_featured: product.is_featured,
     });
+    setNewImageUrl('');
     setFormError('');
+    // Fetch existing product images
+    const { data: imgs } = await supabaseAuth
+      .from('product_images')
+      .select('url, sort')
+      .eq('product_id', product.id)
+      .order('sort');
+    setImages((imgs ?? []).map((i: any) => i.url));
     setModalOpen(true);
   }
 
@@ -176,12 +188,24 @@ export function AdminProducts() {
         is_featured: form.is_featured,
       };
 
+      let productId: string;
       if (editingProduct) {
         const { error } = await supabaseAuth.from('products').update(payload).eq('id', editingProduct.id);
         if (error) throw error;
+        productId = editingProduct.id;
       } else {
-        const { error } = await supabaseAuth.from('products').insert(payload);
+        const { data: inserted, error } = await supabaseAuth.from('products').insert(payload).select('id').single();
         if (error) throw error;
+        productId = inserted.id;
+      }
+
+      // Save product images
+      const validImages = images.filter(Boolean);
+      await supabaseAuth.from('product_images').delete().eq('product_id', productId);
+      if (validImages.length > 0) {
+        await supabaseAuth.from('product_images').insert(
+          validImages.map((url, idx) => ({ product_id: productId, url, sort: idx }))
+        );
       }
 
       setModalOpen(false);
@@ -362,121 +386,183 @@ export function AdminProducts() {
 
       {/* Add / Edit Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingProduct ? 'Ürünü Düzenle' : 'Yeni Ürün Ekle'}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
-            {formError && (
-              <Alert variant="destructive">
-                <AlertCircle className="w-4 h-4" />
-                <AlertDescription>{formError}</AlertDescription>
-              </Alert>
-            )}
+          {formError && (
+            <Alert variant="destructive" className="mx-0">
+              <AlertCircle className="w-4 h-4" />
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
+          )}
 
-            <div>
-              <Label htmlFor="p-title">Ürün Adı *</Label>
-              <Input
-                id="p-title"
-                value={form.title}
-                onChange={(e) => handleTitleChange(e.target.value)}
-                placeholder="Örn: Siyah Spor Tayt"
-                className="mt-1"
-              />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 py-2">
+            {/* LEFT: Image management */}
+            <div className="space-y-3">
+              <p className="font-semibold text-sm">Ürün Fotoğrafları</p>
 
-            <div>
-              <Label htmlFor="p-slug">Slug *</Label>
-              <Input
-                id="p-slug"
-                value={form.slug}
-                onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-                placeholder="siyah-spor-tayt"
-                className="mt-1 font-mono text-sm"
-              />
-              <p className="text-xs text-gray-400 mt-1">URL'de kullanılır. Küçük harf, tire ile.</p>
-            </div>
+              {images.length === 0 && (
+                <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-center text-gray-400">
+                  <ImagePlus className="w-8 h-8 mb-2" />
+                  <p className="text-xs">Fotoğraf URL ekleyin</p>
+                </div>
+              )}
 
-            <div>
-              <Label htmlFor="p-desc">Açıklama</Label>
-              <Textarea
-                id="p-desc"
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Ürün açıklaması..."
-                rows={3}
-                className="mt-1"
-              />
-            </div>
+              <div className="space-y-2">
+                {images.map((url, idx) => (
+                  <div key={idx} className="relative group border rounded-lg overflow-hidden bg-gray-50">
+                    <img
+                      src={url}
+                      alt=""
+                      className="w-full h-32 object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = ''; (e.target as HTMLImageElement).className = 'hidden'; }}
+                    />
+                    <p className="text-xs text-gray-500 truncate px-2 py-1">{url}</p>
+                    <button
+                      type="button"
+                      onClick={() => setImages((imgs) => imgs.filter((_, i) => i !== idx))}
+                      className="absolute top-1 right-1 bg-white/90 hover:bg-white rounded-full p-0.5 shadow opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3 text-red-500" />
+                    </button>
+                  </div>
+                ))}
+              </div>
 
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Label htmlFor="p-price">Fiyat (₺) *</Label>
+              <div className="flex gap-2">
                 <Input
-                  id="p-price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.price}
-                  onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                  placeholder="299.90"
+                  value={newImageUrl}
+                  onChange={(e) => setNewImageUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="text-xs"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (newImageUrl.trim()) { setImages((imgs) => [...imgs, newImageUrl.trim()]); setNewImageUrl(''); }
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (newImageUrl.trim()) { setImages((imgs) => [...imgs, newImageUrl.trim()]); setNewImageUrl(''); }
+                  }}
+                >
+                  <Plus className="w-3 h-3" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-400">Enter veya + ile ekleyin. İlk fotoğraf kapak görseli olur.</p>
+            </div>
+
+            {/* RIGHT: Form fields */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="p-title">Ürün Adı *</Label>
+                <Input
+                  id="p-title"
+                  value={form.title}
+                  onChange={(e) => handleTitleChange(e.target.value)}
+                  placeholder="Örn: Siyah Spor Tayt"
                   className="mt-1"
                 />
               </div>
-              <div className="flex-1">
-                <Label htmlFor="p-compare">İndirim Öncesi Fiyat (₺)</Label>
+
+              <div>
+                <Label htmlFor="p-slug">Slug *</Label>
                 <Input
-                  id="p-compare"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.compare_at}
-                  onChange={(e) => setForm((f) => ({ ...f, compare_at: e.target.value }))}
-                  placeholder="399.90"
+                  id="p-slug"
+                  value={form.slug}
+                  onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                  placeholder="siyah-spor-tayt"
+                  className="mt-1 font-mono text-sm"
+                />
+                <p className="text-xs text-gray-400 mt-1">URL'de kullanılır. Küçük harf, tire ile.</p>
+              </div>
+
+              <div>
+                <Label htmlFor="p-desc">Açıklama</Label>
+                <Textarea
+                  id="p-desc"
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="Ürün açıklaması..."
+                  rows={3}
                   className="mt-1"
                 />
               </div>
-            </div>
 
-            <div>
-              <Label htmlFor="p-collection">Koleksiyon</Label>
-              <Select
-                value={form.collection_id || 'none'}
-                onValueChange={(v) => setForm((f) => ({ ...f, collection_id: v === 'none' ? '' : v }))}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Koleksiyon seç..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— Koleksiyon yok —</SelectItem>
-                  {collectionOptions.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center justify-between border rounded-lg p-3">
-              <div>
-                <p className="font-medium text-sm">Aktif</p>
-                <p className="text-xs text-gray-500">Müşteriler bu ürünü görebilir</p>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <Label htmlFor="p-price">Fiyat (₺) *</Label>
+                  <Input
+                    id="p-price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.price}
+                    onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+                    placeholder="299.90"
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="p-compare">İndirim Öncesi (₺)</Label>
+                  <Input
+                    id="p-compare"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.compare_at}
+                    onChange={(e) => setForm((f) => ({ ...f, compare_at: e.target.value }))}
+                    placeholder="399.90"
+                    className="mt-1"
+                  />
+                </div>
               </div>
-              <Switch
-                checked={form.is_active}
-                onCheckedChange={(v) => setForm((f) => ({ ...f, is_active: v }))}
-              />
-            </div>
 
-            <div className="flex items-center justify-between border rounded-lg p-3">
               <div>
-                <p className="font-medium text-sm">Öne Çıkan</p>
-                <p className="text-xs text-gray-500">Ana sayfada ve öne çıkanlarda göster</p>
+                <Label htmlFor="p-collection">Koleksiyon</Label>
+                <Select
+                  value={form.collection_id || 'none'}
+                  onValueChange={(v) => setForm((f) => ({ ...f, collection_id: v === 'none' ? '' : v }))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Koleksiyon seç..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Koleksiyon yok —</SelectItem>
+                    {collectionOptions.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Switch
-                checked={form.is_featured}
-                onCheckedChange={(v) => setForm((f) => ({ ...f, is_featured: v }))}
-              />
+
+              <div className="flex items-center justify-between border rounded-lg p-3">
+                <div>
+                  <p className="font-medium text-sm">Aktif</p>
+                  <p className="text-xs text-gray-500">Müşteriler bu ürünü görebilir</p>
+                </div>
+                <Switch
+                  checked={form.is_active}
+                  onCheckedChange={(v) => setForm((f) => ({ ...f, is_active: v }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between border rounded-lg p-3">
+                <div>
+                  <p className="font-medium text-sm">Öne Çıkan</p>
+                  <p className="text-xs text-gray-500">Ana sayfada ve öne çıkanlarda göster</p>
+                </div>
+                <Switch
+                  checked={form.is_featured}
+                  onCheckedChange={(v) => setForm((f) => ({ ...f, is_featured: v }))}
+                />
+              </div>
             </div>
           </div>
 

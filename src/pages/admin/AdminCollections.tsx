@@ -315,74 +315,93 @@ export function AdminCollections() {
 
       {/* Add / Edit Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingCollection ? 'Koleksiyonu Düzenle' : 'Yeni Koleksiyon Ekle'}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
-            {formError && (
-              <Alert variant="destructive">
-                <AlertCircle className="w-4 h-4" />
-                <AlertDescription>{formError}</AlertDescription>
-              </Alert>
-            )}
+          {formError && (
+            <Alert variant="destructive">
+              <AlertCircle className="w-4 h-4" />
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
+          )}
 
-            <div>
-              <Label htmlFor="c-title">Koleksiyon Adı *</Label>
-              <Input
-                id="c-title"
-                value={form.title}
-                onChange={(e) => handleTitleChange(e.target.value)}
-                placeholder="Örn: She Moves"
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="c-slug">Slug *</Label>
-              <Input
-                id="c-slug"
-                value={form.slug}
-                onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-                placeholder="she-moves"
-                className="mt-1 font-mono text-sm"
-              />
-              <p className="text-xs text-gray-400 mt-1">URL'de kullanılır. Örn: /collection/she-moves</p>
-            </div>
-
-            <div>
-              <Label htmlFor="c-desc">Açıklama</Label>
-              <Textarea
-                id="c-desc"
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Koleksiyon açıklaması..."
-                rows={3}
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="c-hero">Hero Görsel URL</Label>
-              <Input
-                id="c-hero"
-                value={form.hero_image}
-                onChange={(e) => setForm((f) => ({ ...f, hero_image: e.target.value }))}
-                placeholder="https://..."
-                className="mt-1"
-              />
-            </div>
-
-            <div className="flex items-center justify-between border rounded-lg p-3">
-              <div>
-                <p className="font-medium text-sm">Aktif</p>
-                <p className="text-xs text-gray-500">Müşteriler bu koleksiyonu görebilir</p>
+          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 py-2">
+            {/* LEFT: Hero image preview */}
+            <div className="space-y-3">
+              <p className="font-semibold text-sm">Hero Görsel</p>
+              <div className="border-2 border-dashed rounded-lg overflow-hidden aspect-[3/4] bg-gray-50 flex items-center justify-center">
+                {form.hero_image ? (
+                  <img
+                    src={form.hero_image}
+                    alt="Hero önizleme"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <p className="text-xs text-gray-400 text-center px-4">URL girilince önizleme görünür</p>
+                )}
               </div>
-              <Switch
-                checked={form.is_active}
-                onCheckedChange={(v) => setForm((f) => ({ ...f, is_active: v }))}
-              />
+              <div>
+                <Label htmlFor="c-hero">Görsel URL</Label>
+                <Input
+                  id="c-hero"
+                  value={form.hero_image}
+                  onChange={(e) => setForm((f) => ({ ...f, hero_image: e.target.value }))}
+                  placeholder="https://..."
+                  className="mt-1 text-xs"
+                />
+              </div>
+            </div>
+
+            {/* RIGHT: Form fields */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="c-title">Koleksiyon Adı *</Label>
+                <Input
+                  id="c-title"
+                  value={form.title}
+                  onChange={(e) => handleTitleChange(e.target.value)}
+                  placeholder="Örn: She Moves"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="c-slug">Slug *</Label>
+                <Input
+                  id="c-slug"
+                  value={form.slug}
+                  onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                  placeholder="she-moves"
+                  className="mt-1 font-mono text-sm"
+                />
+                <p className="text-xs text-gray-400 mt-1">URL'de kullanılır. Örn: /collection/she-moves</p>
+              </div>
+
+              <div>
+                <Label htmlFor="c-desc">Açıklama</Label>
+                <Textarea
+                  id="c-desc"
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="Koleksiyon açıklaması..."
+                  rows={4}
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="flex items-center justify-between border rounded-lg p-3">
+                <div>
+                  <p className="font-medium text-sm">Aktif</p>
+                  <p className="text-xs text-gray-500">Müşteriler bu koleksiyonu görebilir</p>
+                </div>
+                <Switch
+                  checked={form.is_active}
+                  onCheckedChange={(v) => setForm((f) => ({ ...f, is_active: v }))}
+                />
+              </div>
             </div>
           </div>
 
