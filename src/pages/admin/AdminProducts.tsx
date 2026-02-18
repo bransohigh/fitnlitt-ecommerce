@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabaseAuth } from '@/lib/supabase-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,25 +42,28 @@ export function AdminProducts() {
   async function fetchProducts() {
     try {
       setLoading(true);
-      const response = await fetch('/api/products?limit=100');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
+      const { data, error } = await supabaseAuth
+        .from('products')
+        .select(`
+          id, slug, title, price, compare_at_price,
+          is_active, is_featured, updated_at,
+          collections(title)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(200);
 
-      const data = await response.json();
-      
-      // Transform API data to match our interface
-      const transformedProducts = data.products.map((p: any) => ({
+      if (error) throw error;
+
+      const transformedProducts = (data ?? []).map((p: any) => ({
         id: p.id,
         slug: p.slug,
         title: p.title,
-        price: p.price,
-        compare_at: p.compare_at,
-        is_active: true,
-        is_featured: p.badges?.is_featured || false,
-        collection_name: p.collection?.title,
-        updated_at: new Date().toISOString(),
+        price: parseFloat(p.price),
+        compare_at: p.compare_at_price ? parseFloat(p.compare_at_price) : null,
+        is_active: p.is_active ?? true,
+        is_featured: p.is_featured ?? false,
+        collection_name: p.collections?.title ?? null,
+        updated_at: p.updated_at ?? new Date().toISOString(),
       }));
 
       setProducts(transformedProducts);

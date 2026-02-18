@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabaseAuth } from '@/lib/supabase-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,20 +31,16 @@ export function AdminDashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        // Fetch products and collections counts
-        const [productsRes, collectionsRes] = await Promise.all([
-          fetch('/api/products'),
-          fetch('/api/collections'),
+        const [{ count: productCount }, { count: collectionCount }] = await Promise.all([
+          supabaseAuth.from('products').select('id', { count: 'exact', head: true }),
+          supabaseAuth.from('collections').select('id', { count: 'exact', head: true }),
         ]);
 
-        const productsData = await productsRes.json();
-        const collectionsData = await collectionsRes.json();
-
         setStats({
-          totalProducts: productsData.meta?.total || productsData.products?.length || 0,
-          totalCollections: Array.isArray(collectionsData) ? collectionsData.length : (collectionsData.collections?.length || 0),
-          totalOrders: 0, // Placeholder
-          totalCustomers: 0, // Placeholder
+          totalProducts: productCount ?? 0,
+          totalCollections: collectionCount ?? 0,
+          totalOrders: 0,
+          totalCustomers: 0,
         });
       } catch (error) {
         console.error('Error loading stats:', error);

@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabaseAuth } from '@/lib/supabase-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,22 +40,31 @@ export function AdminCollections() {
   async function fetchCollections() {
     try {
       setLoading(true);
-      const response = await fetch('/api/collections');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch collections');
-      }
+      const { data, error } = await supabaseAuth
+        .from('collections')
+        .select('id, slug, title, description, is_active, updated_at')
+        .order('created_at', { ascending: false });
 
-      const data = await response.json();
-      
-      // Transform API data to match our interface
-      const transformedCollections = data.map((c: any) => ({
+      if (error) throw error;
+
+      // Get product counts in a second query
+      const { data: counts } = await supabaseAuth
+        .from('products')
+        .select('collection_id')
+        .eq('is_active', true);
+
+      const countMap: Record<string, number> = {};
+      (counts ?? []).forEach((p: any) => {
+        if (p.collection_id) countMap[p.collection_id] = (countMap[p.collection_id] || 0) + 1;
+      });
+
+      const transformedCollections = (data ?? []).map((c: any) => ({
         id: c.id,
         slug: c.slug,
         title: c.title,
         description: c.description,
-        product_count: c.product_count || 0,
-        is_active: true,
+        product_count: countMap[c.id] || 0,
+        is_active: c.is_active ?? true,
         updated_at: c.updated_at || new Date().toISOString(),
       }));
 
