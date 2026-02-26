@@ -1,6 +1,8 @@
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 const collectionsRouter = require('./routes/collections');
 const productsRouter = require('./routes/products');
 const searchRouter = require('./routes/search');
@@ -10,11 +12,18 @@ const adminCollectionsRouter = require('./routes/admin-collections');
 const adminUploadRouter = require('./routes/admin-upload');
 
 const app = express();
-const PORT = process.env.API_PORT || 3001;
+const PORT = process.env.PORT || process.env.API_PORT || 3001;
+const DIST_DIR = path.join(__dirname, '..', 'dist');
+const IS_PRODUCTION = fs.existsSync(DIST_DIR);
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve static frontend files in production
+if (IS_PRODUCTION) {
+  app.use(express.static(DIST_DIR));
+}
 
 // Request logging
 app.use((req, res, next) => {
@@ -38,7 +47,12 @@ app.use('/api/admin/products', adminProductsRouter);
 app.use('/api/admin/collections', adminCollectionsRouter);
 app.use('/api/admin/upload', adminUploadRouter);
 
-// 404 handler
+// SPA fallback — serve index.html for any non-API route in production
+if (IS_PRODUCTION) {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(DIST_DIR, 'index.html'));
+  });
+} (API only — frontend handled above)
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
@@ -59,6 +73,7 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`\n🚀 Fitnlitt API Server running on http://localhost:${PORT}`);
+  console.log(`\n🚀 Fitnlitt Server running on http://localhost:${PORT}`);
+  console.log(`📁 Serving frontend from: ${IS_PRODUCTION ? DIST_DIR : 'dev mode (Vite)'}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health\n`);
 });
