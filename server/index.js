@@ -52,7 +52,9 @@ if (IS_PRODUCTION) {
   app.get('*', (req, res) => {
     res.sendFile(path.join(DIST_DIR, 'index.html'));
   });
-} (API only — frontend handled above)
+}
+
+// 404 handler (API only — frontend handled above)
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
