@@ -9,7 +9,7 @@
     "dev:client": "vite",
     "dev:server": "node server/index.js",
     "install-and-dev": "pnpm install && pnpm dev",
-    "build": "vite build --mode development",
+    "build": "echo 'Using pre-built dist — run build:prod for local build'",
     "build:prod": "vite build",
     "start": "node server/index.js",
     "build:watch": "vite build --watch --mode development",
