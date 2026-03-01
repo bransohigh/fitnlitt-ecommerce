@@ -90,7 +90,7 @@ export const CargoTracking: React.FC = () => {
             type="text"
             value={trackingNumber}
             onChange={(e) => setTrackingNumber(e.target.value)}
-            placeholder="Takip numaranı gir (örn. FNL123456789)"
+            placeholder="Sipariş veya kargo no (örn. FNL-2026-0001)"
             className="flex-1 h-12 text-base border-2 focus:border-[var(--primary-coral)]"
             autoFocus
           />
