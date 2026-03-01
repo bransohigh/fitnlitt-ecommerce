@@ -60,7 +60,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2 text-sm">
               <li><Link to="/contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">İletişim</Link></li>
               <li><Link to="/contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">İade ve Değişim</Link></li>
-              <li><Link to="/contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Kargo Bilgileri</Link></li>
+              <li><Link to="/cargo-tracking" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Kargo Takip</Link></li>
               <li><Link to="/contact" className="text-gray-400 hover:text-[var(--primary-coral)] transition-colors">Sıkça Sorulan Sorular</Link></li>
             </ul>
           </div>

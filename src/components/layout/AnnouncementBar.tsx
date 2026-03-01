@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Truck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const announcements = [
   'Tüm siparişlerde ücretsiz kargo',
@@ -43,13 +44,22 @@ export const AnnouncementBar: React.FC = () => {
           </p>
         </div>
         
-        <button
-          onClick={goToNext}
-          className="p-1 hover:bg-white/20 rounded transition-colors"
-          aria-label="Next announcement"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={goToNext}
+            className="p-1 hover:bg-white/20 rounded transition-colors"
+            aria-label="Next announcement"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <Link
+            to="/cargo-tracking"
+            className="hidden sm:flex items-center gap-1 ml-2 px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors text-xs font-semibold text-[var(--brand-black)] whitespace-nowrap"
+          >
+            <Truck className="w-3.5 h-3.5" />
+            Kargo Takip
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ import { About } from '@/pages/About';
 import { Contact } from '@/pages/Contact';
 import { Loyalty } from '@/pages/Loyalty';
 import { Account } from '@/pages/Account';
+import { CargoTracking } from '@/pages/CargoTracking';
 import { FitRecommender } from '@/components/fit-recommender/FitRecommender';
 import { AdminLogin } from '@/pages/admin/AdminLogin';
 import { AdminDashboard } from '@/pages/admin/AdminDashboard';
@@ -72,6 +73,7 @@ function AppContent() {
         <Route path="/collection/:slug" element={<PublicLayout><Collection /></PublicLayout>} />
         <Route path="/product/:slug" element={<PublicLayout><ProductDetail /></PublicLayout>} />
         <Route path="/account" element={<PublicLayout><Account /></PublicLayout>} />
+        <Route path="/cargo-tracking" element={<PublicLayout><CargoTracking /></PublicLayout>} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />

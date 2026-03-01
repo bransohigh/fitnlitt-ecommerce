@@ -10,6 +10,7 @@ const facetsRouter = require('./routes/facets');
 const adminProductsRouter = require('./routes/admin-products');
 const adminCollectionsRouter = require('./routes/admin-collections');
 const adminUploadRouter = require('./routes/admin-upload');
+const cargoRouter = require('./routes/cargo');
 
 const app = express();
 const PORT = process.env.PORT || process.env.API_PORT || 3001;
@@ -41,6 +42,9 @@ app.use('/api/collections', collectionsRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/facets', facetsRouter);
+
+// Cargo tracking
+app.use('/api/cargo', cargoRouter);
 
 // Admin API Routes (Protected)
 app.use('/api/admin/products', adminProductsRouter);
