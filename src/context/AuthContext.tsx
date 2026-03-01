@@ -30,39 +30,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    async function initializeAuth() {
-      try {
-        const currentSession = await getSession();
-        setSession(currentSession);
+    let settled = false;
 
-        if (currentSession) {
-          const currentUser = await getUser();
-          setUser(currentUser);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
+    function done() {
+      if (!settled) {
+        settled = true;
         setLoading(false);
       }
     }
 
-    initializeAuth();
+    // Timeout: if Supabase hangs (e.g. stale localStorage token), unblock after 4s
+    const timeout = setTimeout(done, 4000);
 
-    // Listen for auth changes
+    // Listen for auth changes — Supabase always fires INITIAL_SESSION immediately
     const {
       data: { subscription },
     } = supabaseAuth.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
       if (newSession) {
-        const newUser = await getUser();
-        setUser(newUser);
+        try {
+          const newUser = await getUser();
+          setUser(newUser);
+        } catch {
+          setUser(null);
+        }
       } else {
         setUser(null);
       }
+      done();
     });
 
-    return () => subscription.unsubscribe();
+    // Also try getSession as fallback (race)
+    getSession()
+      .then((currentSession) => {
+        if (!settled) {
+          setSession(currentSession);
+          if (!currentSession) done();
+        }
+      })
+      .catch(() => done());
+
+    return () => {
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSignIn = async (email: string, password: string) => {

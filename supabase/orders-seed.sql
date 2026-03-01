@@ -46,6 +46,14 @@ create index if not exists orders_created_at_idx on orders(created_at desc);
 -- DEMO SEED DATA
 -- ============================================================
 
+-- Önce mevcut demo verileri temizle (varsa)
+delete from orders where order_number like 'FNL-2026-%';
+delete from customers where email in (
+  'zeynep.kaya@gmail.com',
+  'elif.sahin@hotmail.com',
+  'selin.arslan@icloud.com'
+);
+
 -- Demo Customer 1: Zeynep Kaya
 insert into customers (id, email, first_name, last_name, phone, total_spent, order_count, created_at)
 values (
@@ -95,7 +103,7 @@ insert into orders (
   status, items, subtotal, shipping, discount, total,
   shipping_address, tracking_number, created_at
 ) values (
-  'o1000000-0000-0000-0000-000000000001',
+  'b1000000-0000-0000-0000-000000000001',
   'FNL-2026-0001',
   'c1000000-0000-0000-0000-000000000001',
   'zeynep.kaya@gmail.com',
@@ -117,7 +125,7 @@ insert into orders (
   status, items, subtotal, shipping, discount, total,
   shipping_address, tracking_number, created_at
 ) values (
-  'o1000000-0000-0000-0000-000000000002',
+  'b1000000-0000-0000-0000-000000000002',
   'FNL-2026-0002',
   'c1000000-0000-0000-0000-000000000001',
   'zeynep.kaya@gmail.com',
@@ -140,7 +148,7 @@ insert into orders (
   status, items, subtotal, shipping, discount, total,
   shipping_address, created_at
 ) values (
-  'o1000000-0000-0000-0000-000000000003',
+  'b1000000-0000-0000-0000-000000000003',
   'FNL-2026-0003',
   'c1000000-0000-0000-0000-000000000002',
   'elif.sahin@hotmail.com',
@@ -160,7 +168,7 @@ insert into orders (
   status, items, subtotal, shipping, discount, total,
   shipping_address, created_at
 ) values (
-  'o1000000-0000-0000-0000-000000000004',
+  'b1000000-0000-0000-0000-000000000004',
   'FNL-2026-0004',
   'c1000000-0000-0000-0000-000000000003',
   'selin.arslan@icloud.com',
