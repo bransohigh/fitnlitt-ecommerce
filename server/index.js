@@ -11,6 +11,8 @@ const adminProductsRouter = require('./routes/admin-products');
 const adminCollectionsRouter = require('./routes/admin-collections');
 const adminUploadRouter = require('./routes/admin-upload');
 const cargoRouter = require('./routes/cargo');
+const adminOrdersRouter = require('./routes/admin-orders');
+const adminCustomersRouter = require('./routes/admin-customers');
 
 const app = express();
 const PORT = process.env.PORT || process.env.API_PORT || 3001;
@@ -50,6 +52,8 @@ app.use('/api/cargo', cargoRouter);
 app.use('/api/admin/products', adminProductsRouter);
 app.use('/api/admin/collections', adminCollectionsRouter);
 app.use('/api/admin/upload', adminUploadRouter);
+app.use('/api/admin/orders', adminOrdersRouter);
+app.use('/api/admin/customers', adminCustomersRouter);
 
 // SPA fallback — serve index.html for any non-API route in production
 if (IS_PRODUCTION) {

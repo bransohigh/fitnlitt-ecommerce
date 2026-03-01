@@ -31,16 +31,23 @@ export function AdminDashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const [{ count: productCount }, { count: collectionCount }] = await Promise.all([
+        const [
+          { count: productCount },
+          { count: collectionCount },
+          { count: orderCount },
+          { count: customerCount },
+        ] = await Promise.all([
           supabaseAuth.from('products').select('id', { count: 'exact', head: true }),
           supabaseAuth.from('collections').select('id', { count: 'exact', head: true }),
+          supabaseAuth.from('orders').select('id', { count: 'exact', head: true }),
+          supabaseAuth.from('customers').select('id', { count: 'exact', head: true }),
         ]);
 
         setStats({
           totalProducts: productCount ?? 0,
           totalCollections: collectionCount ?? 0,
-          totalOrders: 0,
-          totalCustomers: 0,
+          totalOrders: orderCount ?? 0,
+          totalCustomers: customerCount ?? 0,
         });
       } catch (error) {
         console.error('Error loading stats:', error);
@@ -72,7 +79,7 @@ export function AdminDashboard() {
       value: stats.totalOrders,
       icon: TrendingUp,
       color: 'green',
-      href: null,
+      href: '/admin/orders',
     },
     {
       title: 'Customers',

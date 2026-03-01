@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Package,
   FolderKanban,
+  ShoppingBag,
   Users,
   Settings,
   LogOut,
@@ -44,8 +45,14 @@ const navItems: NavItem[] = [
     href: '/admin/collections',
   },
   {
+    id: 'orders',
+    label: 'Siparişler',
+    icon: ShoppingBag,
+    href: '/admin/orders',
+  },
+  {
     id: 'customers',
-    label: 'Customers',
+    label: 'Müşteriler',
     icon: Users,
     href: '/admin/customers',
   },

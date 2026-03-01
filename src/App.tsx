@@ -16,6 +16,7 @@ import { Contact } from '@/pages/Contact';
 import { Loyalty } from '@/pages/Loyalty';
 import { Account } from '@/pages/Account';
 import { CargoTracking } from '@/pages/CargoTracking';
+import { AdminOrders } from '@/pages/admin/AdminOrders';
 import { FitRecommender } from '@/components/fit-recommender/FitRecommender';
 import { AdminLogin } from '@/pages/admin/AdminLogin';
 import { AdminDashboard } from '@/pages/admin/AdminDashboard';
@@ -98,6 +99,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <AdminLayout><AdminCollections /></AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/orders"
+          element={
+            <ProtectedRoute>
+              <AdminLayout><AdminOrders /></AdminLayout>
             </ProtectedRoute>
           }
         />
