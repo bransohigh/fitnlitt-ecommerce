@@ -47,6 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabaseAuth.auth.onAuthStateChange(async (_event, newSession) => {
       setSession(newSession);
+      // Unblock loading IMMEDIATELY — don't wait for getUser()
+      done();
       if (newSession) {
         try {
           const newUser = await getUser();
@@ -57,7 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUser(null);
       }
-      done();
     });
 
     // Also try getSession as fallback (race)

@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CartProvider } from '@/context/CartContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -134,17 +135,52 @@ function AppContent() {
   );
 }
 
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[ErrorBoundary]', error, info);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-8 text-center">
+          <p className="text-lg font-semibold text-red-600">Bir şeyler ters gitti.</p>
+          <p className="text-sm text-gray-500">{this.state.error.message}</p>
+          <button
+            className="mt-2 px-4 py-2 bg-black text-white rounded-md text-sm"
+            onClick={() => window.location.reload()}
+          >
+            Sayfayı Yenile
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <CartProvider>
-          <AppDataProvider>
-            <AppContent />
-          </AppDataProvider>
-        </CartProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <CartProvider>
+            <AppDataProvider>
+              <AppContent />
+            </AppDataProvider>
+          </CartProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
